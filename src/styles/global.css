@@ -78,6 +78,9 @@ body {
   transition: background-color .25s ease, color .25s ease;
 }
 
+/* Trình duyệt mặc định cho <code>/<pre> dùng font "monospace" của hệ thống (Menlo) — ép về Auvyx Mono */
+pre, code, kbd, samp, output, input, button, textarea, select { font-family: var(--font); }
+
 a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 a:hover { color: var(--accent); }
 ::selection { background: var(--accent); color: var(--bg); }
