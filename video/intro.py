@@ -11,6 +11,7 @@ import argparse
 import json
 import math
 import os
+import shutil
 import re
 import subprocess
 import sys
@@ -44,73 +45,70 @@ def init(font_dir: str, glyph_json: str | None):
 
 
 # ---------------------------------------------------------------- scenes
-def s_intro(cv, t):  # 0 – 5
-    a = fade(t, 0.4, 4.9, 0.8, 0.6)
+# Mỗi cảnh nhận thời gian cục bộ t (giây, tính từ đầu cảnh) và độ dài D của cảnh.
+# Nhạc 120 BPM: mỗi ô nhịp 2 giây, mọi cảnh bắt đầu đúng phách mạnh.
+
+def s_intro(cv, t, D):
+    a = fade(t, 0.4, D - 0.2, 0.8, 0.6)
     draw_text(cv, UP, "Introducing", 44, W / 2, 400, wght=400, color=GRAY, alpha=a)
-    p = prog(t, 1.2, 1.1)
-    w = 100 + 600 * ease_in_out(prog(t, 1.4, 2.0))
+    p = prog(t, 1.4, 1.4)
+    w = 100 + 600 * ease_in_out(prog(t, 1.6, 3.0))
     draw_text(cv, UP, "Auvyx Mono", 210, W / 2, 640 + 30 * (1 - ease_out(p)), wght=w,
-              alpha=ease_out(p) * (1 - ease_in_out(prog(t, 4.4, 0.6))), blur=18 * (1 - ease_out(p)))
+              alpha=ease_out(p) * (1 - ease_in_out(prog(t, D - 0.5, 0.45))), blur=18 * (1 - ease_out(p)))
 
 
-def s_tagline(cv, t):  # 5 – 10
-    t -= 5
-    a1 = fade(t, 0.3, 4.9, 0.9, 0.6)
-    a2 = fade(t, 1.6, 4.9, 0.9, 0.6)
-    y1 = 500 + 24 * (1 - ease_out(prog(t, 0.3, 0.9)))
-    y2 = 640 + 24 * (1 - ease_out(prog(t, 1.6, 0.9)))
-    draw_text(cv, UP, "Designed for code.", 110, W / 2, y1, wght=700, alpha=a1, blur=10 * (1 - ease_out(prog(t, 0.3, 0.9))))
+def s_tagline(cv, t, D):
+    a1 = fade(t, 0.0, D - 0.1, 0.7, 0.5)
+    a2 = fade(t, 1.0, D - 0.1, 0.7, 0.5)
+    y1 = 500 + 24 * (1 - ease_out(prog(t, 0.0, 0.7)))
+    y2 = 640 + 24 * (1 - ease_out(prog(t, 1.0, 0.7)))
+    draw_text(cv, UP, "Designed for code.", 110, W / 2, y1, wght=700, alpha=a1, blur=10 * (1 - ease_out(prog(t, 0.0, 0.7))))
     draw_text(cv, UP, "Built for people.", 110, W / 2, y2, wght=700, grad=GRAD, alpha=a2,
-              blur=10 * (1 - ease_out(prog(t, 1.6, 0.9))))
+              blur=10 * (1 - ease_out(prog(t, 1.0, 0.7))))
 
 
-def s_weights(cv, t):  # 10 – 17
-    t -= 10
-    a = fade(t, 0.2, 6.9, 0.8, 0.6)
+def s_weights(cv, t, D):
+    a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
     draw_text(cv, UP, "Seven weights. One variable font.", 44, W / 2, 250, color=GRAY, alpha=a)
-    phase = ease_in_out(prog(t, 0.8, 2.6)) - ease_in_out(prog(t, 3.8, 2.6))
+    phase = ease_in_out(prog(t, 1.0, 3.0)) - ease_in_out(prog(t, 4.0, 3.0))
     w = 100 + 600 * phase
     draw_text(cv, UP, "Auvyx", 320, W / 2, 640, wght=w, alpha=a)
     names = {100: "Thin", 200: "ExtraLight", 300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold"}
     name = names[min(names, key=lambda k: abs(k - w))]
     draw_text(cv, UP, f"wght {int(round(w)):>3}", 36, W / 2 - 40, 820, color=WHITE, alpha=a * 0.9, align="right")
     draw_text(cv, UP, name, 36, W / 2 + 40, 820, color=GRAY, alpha=a, align="left")
-    # thanh trục
     x0, x1, y = 560, 1360, 880
     cv.rect(x0, y, x1 - x0, 4, DIM, a, 2)
     cv.rect(x0, y, (x1 - x0) * phase + 1, 4, (255, 138, 76), a, 2)
     cv.rect(x0 + (x1 - x0) * phase - 10, y - 8, 20, 20, WHITE, a, 10)
 
 
-def s_italic(cv, t):  # 17 – 23
-    t -= 17
-    a = fade(t, 0.2, 5.9, 0.8, 0.6)
+def s_italic(cv, t, D):
+    a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
     draw_text(cv, UP, "A true italic.", 44, W / 2, 300, color=GRAY, alpha=a)
-    k_out = ease_in_out(prog(t, 2.0, 0.45))  # chữ đứng mờ đi trước
-    k_in = ease_out(prog(t, 2.35, 0.7))      # rồi chữ nghiêng mới hiện ra, không chồng lên nhau
+    k_out = ease_in_out(prog(t, 1.75, 0.35))  # chữ đứng tắt ngay trước phách
+    k_in = ease_out(prog(t, 2.0, 0.6))        # chữ nghiêng hiện đúng phách mạnh
     word = "Hamburgefonstiv"
     draw_text(cv, UP, word, 150, W / 2 - 20 * k_out, 600, wght=500, alpha=a * (1 - k_out), blur=8 * k_out)
     draw_text(cv, IT, word, 150, W / 2 + 20 * (1 - k_in), 600, wght=500, alpha=a * k_in, blur=8 * (1 - k_in))
-    draw_text(cv, IT, "kljrvwtf  KLJRVWTF", 64, W / 2, 790, wght=400, grad=GRAD, alpha=a * ease_out(prog(t, 3.2, 1.0)))
+    draw_text(cv, IT, "kljrvwtf  KLJRVWTF", 64, W / 2, 790, wght=400, grad=GRAD, alpha=a * ease_out(prog(t, 3.0, 0.8)))
 
 
 LIGS = ["->", "!=", "===", "|>", "=>", "::"]
 
 
-def s_ligatures(cv, t):  # 23 – 31
-    t -= 23
-    a = fade(t, 0.2, 7.9, 0.8, 0.6)
+def s_ligatures(cv, t, D):
+    a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
     draw_text(cv, UP, "Ligatures that read naturally.", 44, W / 2, 260, color=GRAY, alpha=a)
-    step = 1.2
     for i, lig in enumerate(LIGS):
-        t0 = 0.6 + i * step
-        ai = fade(t, t0, t0 + step + 0.25, 0.35, 0.35) if i < len(LIGS) - 1 else fade(t, t0, 7.9, 0.35, 0.6)
+        t0 = 0.5 + i * 1.0                     # hiện ở nửa phách, gộp đúng phách
+        last = i == len(LIGS) - 1
+        ai = fade(t, t0, D - 0.1 if last else t0 + 1.15, 0.25, 0.3)
         if ai <= 0:
             continue
-        k = ease_in_out(prog(t, t0 + 0.35, 0.45))
+        k = ease_in_out(prog(t, t0 + 0.4, 0.2))
         draw_text(cv, UP, lig, 300, W / 2, 680, wght=500, alpha=ai * (1 - k), feats=(("calt", False),))
         draw_text(cv, UP, lig, 300, W / 2, 680, wght=500, alpha=ai * k, grad=GRAD)
-    # dòng code nhỏ phía dưới
     draw_text(cv, UP, "if (a != b && x >= 0) data |> render;", 40, W / 2, 900, color=WHITE,
               alpha=a * ease_out(prog(t, 1.0, 1.0)) * 0.85)
 
@@ -152,17 +150,16 @@ def tokenize(line: str) -> list[str]:
     return kinds
 
 
-def s_code(cv, t):  # 31 – 39
-    t -= 31
-    a = fade(t, 0.2, 7.9, 0.8, 0.6)
+def s_code(cv, t, D):
+    a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
     draw_text(cv, UP, "Made for long sessions.", 44, W / 2, 170, color=GRAY, alpha=a)
     cx, cy, cw, ch = 260, 240, 1400, 640
-    lift = 30 * (1 - ease_out(prog(t, 0.2, 1.0)))
+    lift = 30 * (1 - ease_out(prog(t, 0.1, 0.9)))
     cv.rect(cx, cy + lift, cw, ch, (28, 28, 32), a, 28)
     for i, c in enumerate([(255, 95, 87), (254, 188, 46), (40, 200, 64)]):
         cv.rect(cx + 32 + i * 34, cy + lift + 30, 18, 18, c, a, 9)
     size, lh = 32, 58
-    n = int(max(0, t - 1.0) * 38)  # ký tự đã gõ
+    n = int(max(0, t - 0.9) * 42)  # ký tự đã gõ
     shown = CODE[:n]
     lines = shown.split("\n")
     x0, y0 = cx + 70, cy + lift + 130
@@ -172,21 +169,19 @@ def s_code(cv, t):  # 31 – 39
             layer = "".join(chh if kk == k else " " for chh, kk in zip(line, kinds))
             face = IT if k == "com" else UP
             draw_text(cv, face, layer.rstrip(), size, x0, y0 + li * lh, color=COL[k], alpha=a, align="left")
-    # con trỏ
     if n < len(CODE) or int(t * 2) % 2 == 0:
         last = lines[-1] if lines else ""
         cxp = x0 + advance(UP, last + "x", size) - advance(UP, "x", size) if last else x0
         cv.rect(cxp + 2, y0 + (len(lines) - 1) * lh - size * 0.8, 3, size * 1.05, (255, 138, 76), a, 1)
 
 
-def s_viet(cv, t):  # 39 – 45
-    t -= 39
-    a = fade(t, 0.2, 5.9, 0.8, 0.6)
-    p = ease_out(prog(t, 0.2, 1.0))
+def s_viet(cv, t, D):
+    a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
+    p = ease_out(prog(t, 0.0, 0.9))
     draw_text(cv, UP, "Tiếng Việt.", 190, W / 2, 520 + 20 * (1 - p), wght=700, grad=GRAD, alpha=a, blur=12 * (1 - p))
-    p2 = ease_out(prog(t, 1.4, 1.0))
+    p2 = ease_out(prog(t, 1.0, 0.9))
     draw_text(cv, IT, "Chữ đẹp là nết người.", 76, W / 2, 680, wght=400, alpha=a * p2)
-    draw_text(cv, UP, "Every diacritic, in its place.", 40, W / 2, 820, color=GRAY, alpha=a * ease_out(prog(t, 2.4, 1.0)))
+    draw_text(cv, UP, "Every diacritic, in its place.", 40, W / 2, 820, color=GRAY, alpha=a * ease_out(prog(t, 2.0, 0.9)))
 
 
 _ROWS = None
@@ -195,7 +190,6 @@ _ROWS = None
 def glyph_rows():
     global _ROWS
     if _ROWS is None:
-        from PIL import Image
         rows = []
         per = 70
         for r in range(11):
@@ -206,39 +200,44 @@ def glyph_rows():
     return _ROWS
 
 
-def s_glyphs(cv, t):  # 45 – 50
-    t -= 45
-    a = fade(t, 0.1, 4.9, 0.8, 0.6)
+def s_glyphs(cv, t, D):
+    a = fade(t, 0.0, D - 0.1, 0.5, 0.5)
     for r, (m, asc) in enumerate(glyph_rows()):
-        speed = 40 + 18 * (r % 4)
+        speed = 60 + 24 * (r % 4)
         x = -((t * speed + r * 137) % max(1, m.width - W - 10))
         cv.blit(m, int(x), int(60 + r * 92 - asc + 58), DIM, a)
-    # nền mờ ở giữa
     cv.rect(360, 390, 1200, 300, (0, 0, 0), a * 0.82, 40)
-    p = ease_out(prog(t, 0.6, 1.0))
+    p = ease_out(prog(t, 0.0, 0.8))
     draw_text(cv, UP, "1,073 characters.", 110, W / 2, 560, wght=700, alpha=a * p, blur=8 * (1 - p))
-    draw_text(cv, UP, "Latin · Greek · Cyrillic · Vietnamese", 38, W / 2, 650, color=GRAY, alpha=a * ease_out(prog(t, 1.4, 1.0)))
+    draw_text(cv, UP, "Latin · Greek · Cyrillic · Vietnamese", 38, W / 2, 650, color=GRAY, alpha=a * ease_out(prog(t, 1.0, 0.8)))
 
 
-def s_end(cv, t):  # 50 – 56
-    t -= 50
-    out = 1 - ease_in_out(prog(t, 5.0, 0.9))
-    p = ease_out(prog(t, 0.3, 1.2))
-    draw_text(cv, UP, "Auvyx Mono", 170, W / 2, 560, wght=100 + 600 * ease_in_out(prog(t, 0.3, 1.6)),
+def s_end(cv, t, D):
+    out = 1 - ease_in_out(prog(t, D - 1.2, 1.1))
+    p = ease_out(prog(t, 0.0, 1.2))
+    draw_text(cv, UP, "Auvyx Mono", 170, W / 2, 560, wght=100 + 600 * ease_in_out(prog(t, 0.0, 2.0)),
               alpha=p * out, blur=14 * (1 - p))
-    draw_text(cv, UP, "Free & open source.", 54, W / 2, 680, grad=GRAD, alpha=ease_out(prog(t, 1.6, 1.0)) * out)
-    draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, 2.4, 1.0)) * out)
+    draw_text(cv, UP, "Free & open source.", 54, W / 2, 680, grad=GRAD, alpha=ease_out(prog(t, 2.0, 0.9)) * out)
+    draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, 3.0, 0.9)) * out)
+    draw_text(cv, UP, "Music: Horizons by Corporate Music Zone · CC BY 4.0", 22, W / 2, 1030, color=(90, 90, 96),
+              alpha=ease_out(prog(t, 3.0, 0.9)) * out)
 
 
-SCENES = [(0, 5, s_intro), (5, 10, s_tagline), (10, 17, s_weights), (17, 23, s_italic), (23, 31, s_ligatures),
-          (31, 39, s_code), (39, 45, s_viet), (45, 50, s_glyphs), (50, 56.5, s_end)]
+# (bắt đầu, kết thúc) — đặt trên lưới 2 giây để khớp ô nhịp của nhạc
+SCENES = [(0, 6, s_intro), (6, 10, s_tagline), (10, 18, s_weights), (18, 24, s_italic), (24, 32, s_ligatures),
+          (32, 40, s_code), (40, 46, s_viet), (46, 50, s_glyphs), (50, 56, s_end)]
+
+# Nhạc: "Horizons" by Corporate Music Zone (CC BY 4.0). Đoạn lặng kết thúc và beat vào ở giây 80.6 của bài;
+# đặt khớp với giây 6.0 của video (lúc hiện "Designed for code.").
+MUSIC = Path(__file__).parent / "music" / "corporate-music-zone-horizons.mp3"
+MUSIC_DROP, VIDEO_DROP = 80.6, 6.0
 
 
 def frame(t: float) -> Canvas:
     cv = Canvas()
     for a, b, fn in SCENES:
         if a <= t < b:
-            fn(cv, t)
+            fn(cv, t - a, b - a)
     return cv
 
 
@@ -265,6 +264,7 @@ def main():
     ap.add_argument("--glyphs", default=str(Path(__file__).parent.parent / "src/data/glyphs.json"))
     ap.add_argument("--out", default="auvyx-mono-intro.mp4")
     ap.add_argument("--preview", type=float, nargs="*")
+    ap.add_argument("--no-music", action="store_true")
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     a = ap.parse_args()
 
@@ -284,8 +284,25 @@ def main():
             parts = pool.map(_worker, chunks)
         lst = os.path.join(tmp, "list.txt")
         Path(lst).write_text("".join(f"file '{p}'\n" for p in parts))
+        silent = os.path.join(tmp, "silent.mp4")
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst,
-                        "-c", "copy", "-movflags", "+faststart", a.out], check=True)
+                        "-c", "copy", silent], check=True)
+        if MUSIC.exists() and not a.no_music:
+            start = MUSIC_DROP - VIDEO_DROP
+            fades = f"afade=t=in:st=0:d=1.5,afade=t=out:st={DURATION - 3.5}:d=3.5"
+            # đo độ lớn trước, rồi chuẩn hoá tuyến tính (giữ nguyên độ tương phản đoạn lặng → beat vào)
+            meas = subprocess.run(["ffmpeg", "-hide_banner", "-ss", f"{start}", "-t", f"{DURATION}", "-i", str(MUSIC),
+                                   "-af", fades + ",loudnorm=I=-16:TP=-1.5:LRA=20:print_format=json", "-f", "null", "-"],
+                                  capture_output=True, text=True).stderr
+            m = json.loads(meas[meas.rindex("{"):meas.rindex("}") + 1])
+            af = (fades + f",loudnorm=I=-16:TP=-1.5:LRA=20:linear=true:measured_I={m['input_i']}:measured_TP={m['input_tp']}"
+                  f":measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}")
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-ss", f"{start}", "-t", f"{DURATION}",
+                            "-i", str(MUSIC), "-map", "0:v", "-map", "1:a", "-af", af, "-c:v", "copy",
+                            "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-shortest", "-movflags", "+faststart", a.out],
+                           check=True)
+        else:
+            shutil.copy(silent, a.out)
     print("OK", a.out)
 
 
