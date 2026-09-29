@@ -64,6 +64,37 @@ import_glyphs:
       target: [-150, 0, 516, 696]
     chars: "oơø"
 
+  # --- Chữ in hoa: cùng nguồn với chữ thường, khớp theo cap-height (Lilex: 698) ---
+  - name: Recursive-upright-caps
+    source: sources/external/recursive/Recursive_VF_1.085.ttf
+    styles: [upright]
+    location: {MONO: 1, CASL: 0, slnt: 0, CRSV: 0}
+    masters: {100: 227, 400: 373, 700: 787}
+    zones:
+      source: [-200, 0, 700, 1000]
+      target: [-200, 0, 698, 998]
+    chars: "AFJTSWR ĄŞŢŦ"
+
+  - name: Geist-caps
+    source: sources/external/geist/GeistMono-VF-1.7.2.ttf
+    styles: [upright]
+    location: {}
+    masters: {100: 50, 400: 385, 700: 769}
+    zones:
+      source: [-150, 0, 710, 1000]
+      target: [-150, 0, 698, 988]
+    chars: "OØƠ"
+
+  - name: Recursive-italic-caps
+    source: sources/external/recursive/Recursive_VF_1.085.ttf
+    styles: [italic]
+    location: {MONO: 1, CASL: 0, slnt: -9.5, CRSV: 0}
+    masters: {100: 238, 400: 367, 700: 750}
+    zones:
+      source: [-200, 0, 700, 1000]
+      target: [-200, 0, 698, 998]
+    chars: "KLJRVWTF ŁŦŢ"
+
 extra_copyright:
-  - "Glyphs from Recursive (upright a f j t s w r, italic k l j r v w t f): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
-  - "Glyph o from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."
+  - "Glyphs from Recursive (upright a f j t s w r A F J T S W R, italic k l j r v w t f K L J R V W T F): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Glyphs o O from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."
