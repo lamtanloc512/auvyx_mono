@@ -49,8 +49,8 @@ def init(font_dir: str, glyph_json: str | None, info: dict | None = None):
 # ---------------------------------------------------------------- nhịp nhạc
 from music import BAR, BEAT, GRID0  # noqa: E402
 
-DURATION = 60.0
-SUSTAIN = 2.6                      # thời gian nốt dừng ngân tới khi lặng
+DURATION = 61.0
+SUSTAIN = 3.6                      # thời gian nốt dừng ngân tới khi lặng
 MUSIC = Path(__file__).parent / "music" / "ethereal88-in-the-remains-of-the-day.mp3"
 MUSIC_CREDIT = "Music: In the Remains of the Day by Ethereal 88 · CC BY 4.0"
 
@@ -81,6 +81,26 @@ def pick_onsets(t0: float, t1: float, gap: float, min_s: float = 1.0) -> list[fl
             out.append(float(t))
             last = t
     return out
+
+
+def stepper(t: float, notes: list[float], v0: float, v1: float, ease=0.16) -> float:
+    """Giá trị nhảy từng nấc trên mỗi nốt (từ v0 tới v1), mỗi nấc chuyển mượt trong `ease` giây."""
+    if not notes or t < notes[0]:
+        return v0
+    n = len(notes)
+    for k in range(n - 1, -1, -1):
+        if t >= notes[k]:
+            a = v0 + (v1 - v0) * k / n
+            b = v0 + (v1 - v0) * (k + 1) / n
+            return a + (b - a) * ease_out(clamp((t - notes[k]) / ease))
+    return v0
+
+
+def reveal_words(t: float, words: list[str], times: list[float]) -> str:
+    """Câu với các từ đã hiện; từ chưa tới lượt thay bằng khoảng trắng (giữ nguyên vị trí)."""
+    full = " ".join(words)
+    shown = " ".join(w for w, tt in zip(words, times) if t >= tt)
+    return shown + " " * (len(full) - len(shown)) if shown else ""
 
 
 def plan_cuts(t0: float, t1: float, ramp) -> list[tuple[float, float]]:
@@ -124,30 +144,31 @@ def plan_cuts(t0: float, t1: float, ramp) -> list[tuple[float, float]]:
 EV: dict = {}
 
 
-def s_intro(cv, t, D):  # piano mở đầu
-    a = fade(t, 0.3, D - 0.1, 0.8, 0.5)
+def s_intro(cv, t, D):  # piano mở đầu: mọi thay đổi rơi đúng nốt
+    a = fade(t, EV["introducing"], D - 0.1, 0.7, 0.5)
     draw_text(cv, UP, "Introducing", 44, W / 2, 400, wght=400, color=GRAY, alpha=a)
     t1 = EV["title"]
-    p = prog(t, t1, 1.3)
-    w = 100 + 600 * ease_in_out(prog(t, t1, 2 * BAR))
+    p = prog(t, t1, 1.0)
+    w = stepper(t, EV["title_steps"], 100, 700)          # độ đậm tăng từng nấc theo từng nốt piano
     draw_text(cv, UP, "Auvyx Mono", 210, W / 2, 640 + 30 * (1 - ease_out(p)), wght=w,
               alpha=ease_out(p) * (1 - ease_in_out(prog(t, D - 0.45, 0.4))), blur=18 * (1 - ease_out(p)))
 
 
-def s_tagline(cv, t, D):
-    a1 = fade(t, 0.0, D - 0.1, 0.6, 0.45)
-    t2 = EV["tag2"]
-    a2 = fade(t, t2, D - 0.1, 0.6, 0.45)
-    p1, p2 = ease_out(prog(t, 0.0, 0.7)), ease_out(prog(t, t2, 0.7))
-    draw_text(cv, UP, "Designed for code.", 110, W / 2, 500 + 24 * (1 - p1), wght=700, alpha=a1, blur=10 * (1 - p1))
-    draw_text(cv, UP, "Built for people.", 110, W / 2, 640 + 24 * (1 - p2), wght=700, grad=GRAD, alpha=a2, blur=10 * (1 - p2))
+def s_tagline(cv, t, D):  # mỗi từ vào một nốt
+    a = fade(t, 0.0, D - 0.1, 0.01, 0.45)
+    l1 = reveal_words(t, ["Designed", "for", "code."], EV["tag1"])
+    l2 = reveal_words(t, ["Built", "for", "people."], EV["tag2"])
+    if l1:
+        draw_text(cv, UP, l1, 110, W / 2, 500, wght=700, alpha=a)
+    if l2:
+        draw_text(cv, UP, l2, 110, W / 2, 640, wght=700, grad=GRAD, alpha=a)
 
 
-def s_weights(cv, t, D):  # dồn lên Bold đúng lúc beat vào
-    a = fade(t, 0.1, D + 1, 0.6, 0.5)
+def s_weights(cv, t, D):  # độ đậm nhảy từng nấc trên từng nốt, chạm Bold ở nốt cuối trước khi beat vào
+    a = fade(t, 0.0, D + 1, 0.4, 0.5)
     draw_text(cv, UP, "Seven weights. One variable font.", 44, W / 2, 250, color=GRAY, alpha=a)
-    phase = ease_in_out(prog(t, 0.3, D - 0.3)) ** 1.3
-    w = 100 + 600 * phase
+    w = stepper(t, EV["w_steps"], 100, 700, ease=0.12)
+    phase = (w - 100) / 600
     draw_text(cv, UP, "Auvyx", 320 * (1 + 0.06 * phase), W / 2, 640, wght=w, alpha=a)
     names = {100: "Thin", 200: "ExtraLight", 300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold"}
     name = names[min(names, key=lambda k: abs(k - w))]
@@ -369,7 +390,13 @@ def setup(info: dict):
     ONS_S = np.array(info["strengths"])
     t_stop, c_start = info["t_stop"], info["c_start"]
     b4, b8, b12, b18, b20, b22 = (snap(bar(b)) for b in (4, 8, 12, 18, 20, 22))
-    EV.update(title=snap(bar(1)) , tag2=snap(bar(6)) - b4)
+    first = pick_onsets(0.2, 2.0, 0.1, 0.8)
+    EV["introducing"] = first[0] if first else 0.4
+    EV["title"] = snap(bar(1))
+    EV["title_steps"] = pick_onsets(EV["title"] + 0.1, b4 - 0.5, 0.3, 1.0)
+    EV["tag1"] = [x - b4 for x in pick_onsets(b4, b4 + 1.6, 0.28, 0.9)[:3]]
+    EV["tag2"] = [x - b4 for x in pick_onsets(snap(bar(6)), snap(bar(6)) + 1.6, 0.28, 0.9)[:3]]
+    EV["w_steps"] = [x - b8 for x in pick_onsets(b8 + 0.1, b12 - 0.05, 0.3, 1.0)]
     EV["m1_start"], EV["m1"] = b12, plan_cuts(b12, b18, MONTAGE_1)
     EV["m2_start"], EV["m2"] = b22, plan_cuts(b22, t_stop, MONTAGE_2)
     EV["m1_off"], EV["m2_off"] = 0, len(EV["m1"])

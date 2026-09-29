@@ -3,8 +3,8 @@
 Bài: "In the Remains of the Day" by Ethereal 88 (CC BY 4.0), 140 BPM.
   A  bài 0 → ô 24: piano mở đầu, beat vào ở ô 12
   B  4 ô sôi động cuối bài (ô 97 → nốt mạnh ở phách đầu ô 101)
-  ✦  NỐT DỪNG: nốt mạnh ở phách đầu ô 101 (~48,4s của video) được "ngân" (spectral freeze),
-     sáng dần tối lại, tắt hẳn về im lặng
+  ✦  NỐT DỪNG: nốt mạnh ở phách đầu ô 101 (~48,4s của video). Thân nốt được thay bằng tiếng piano đệm
+     cùng hợp âm (lấy từ đoạn hạ màn, không có trống/bass), "ngân" bằng spectral freeze rồi tắt hẳn về im lặng
   C  đoạn hạ màn piano (các nốt sau đó tới hết bài), kéo chậm lại (giữ cao độ)
 """
 from __future__ import annotations
@@ -76,7 +76,7 @@ def detect_onsets(mono: np.ndarray, min_gap=0.06):
     return times[~silent], strength[~silent]
 
 
-def freeze(x: np.ndarray, at: float, length: float, n=4096, hop=1024, seed=7) -> np.ndarray:
+def freeze(x: np.ndarray, at: float, length: float, n=4096, hop=1024, seed=7, ref: float | None = None) -> np.ndarray:
     """'Ngân' một nốt: giữ phổ biên độ của khung tại `at`, pha ngẫu nhiên mỗi khung → tiếng ngân liền mạch.
     Âm cao tắt nhanh hơn âm trầm (lọc dần) cho giống tiếng đàn tự nhiên tắt."""
     rng = np.random.default_rng(seed)
@@ -92,13 +92,15 @@ def freeze(x: np.ndarray, at: float, length: float, n=4096, hop=1024, seed=7) ->
         tilt = 1 / np.sqrt(1 + (freqs / cutoff) ** 4)
         spec = (mag * tilt[:, None]) * np.exp(1j * rng.uniform(0, 2 * np.pi, mag.shape))
         out[fr * hop: fr * hop + n] += np.fft.irfft(spec, n=n, axis=0).astype(np.float32) * win[:, None]
-    ref = np.sqrt(np.mean(x[i:i + int(0.12 * SR)] ** 2))
+    if ref is None:
+        ref = np.sqrt(np.mean(x[i:i + int(0.12 * SR)] ** 2))
     out *= ref / (np.sqrt(np.mean(out[n: n + int(0.3 * SR)] ** 2)) + 1e-9)
     return out[: int(length * SR)]
 
 
-DRONE_HOLD = 0.45      # giây giữ nguyên độ lớn sau nốt dừng
-DRONE_GAIN = 1.3       # nốt ngân to hơn nốt gốc một chút (~+2 dB) để nghe rõ là "ngân"
+DRONE_HOLD = 0.7       # giây giữ nguyên độ lớn sau nốt dừng
+DRONE_GAIN = 0.9       # so với độ lớn thân nốt dừng
+PIANO_FREEZE_AT = 176.50   # giây trong bài: tiếng piano đệm (không trống/bass) cùng hợp âm với nốt dừng (tương đồng 0,98)
 
 
 def drone_env(t, sustain):
@@ -147,7 +149,8 @@ def build(path: str, video_bar, duration: float, out_wav: str, sustain=2.6, outr
     B = song[int((b_song0 - XF / 2) * SR): int((stop_song + 0.17) * SR)]
     place(mix, B, j - XF / 2, fade_in=XF, fade_out=0.05)
     # nốt ngân: vào từ 0,12s sau nốt dừng, giữ ~0,35s rồi tắt dần theo hàm mũ về -60 dB
-    drone = freeze(song, stop_song + 0.07, sustain + 0.3)
+    body = np.sqrt(np.mean(song[int((stop_song + 0.04) * SR): int((stop_song + 0.17) * SR)] ** 2))
+    drone = freeze(song, PIANO_FREEZE_AT, sustain + 0.3, n=8192, hop=2048, ref=body)
     tt = np.arange(len(drone)) / SR + 0.12                 # thời gian tính từ nốt dừng
     drone *= drone_env(tt, sustain)[:, None].astype(np.float32)
     place(mix, drone, t_stop + 0.12, fade_in=0.08, gain=DRONE_GAIN)
