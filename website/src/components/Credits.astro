@@ -1,0 +1,51 @@
+---
+import { SITE } from "../config";
+const inspirations = [
+  ["IBM Plex", "https://github.com/IBM/plex"],
+  ["Recursive", "https://github.com/arrowtype/recursive"],
+  ["Geist Mono", "https://github.com/vercel/geist-font"],
+];
+---
+<section class="credits">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow">Open source</p>
+      <h2>Free to use, free to share.</h2>
+      <p class="lead">
+        Auvyx Mono is released under the
+        <a href="https://openfontlicense.org">SIL Open Font License 1.1</a>.
+        Use it anywhere — personal or commercial projects — and share your
+        changes under the same license.
+      </p>
+    </div>
+    <div>
+      <h3 class="insp-title">Inspired by</h3>
+      <ul class="list">
+        {inspirations.map(([name, url]) => (
+          <li><a href={url} rel="noopener">{name}</a></li>
+        ))}
+      </ul>
+      <p class="note">Full copyright notices are included in <code>OFL.txt</code> inside the download.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap foot">
+    <span>© 2026 {SITE.author}. Font licensed under OFL 1.1.</span>
+    <span class="muted">Set in Auvyx Mono, of course.</span>
+  </div>
+</footer>
+
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: end; }
+  .insp-title { font-size: 14px; font-weight: 400; color: var(--muted); margin-bottom: 14px; }
+  .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .list li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .list a { text-decoration: none; font-size: clamp(22px, 2.6vw, 30px); font-weight: 600; }
+  .note { margin: 16px 0 0; font-size: 13px; color: var(--muted); }
+  .footer { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 13px; }
+  .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .muted { color: var(--muted); }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; gap: 32px; } }
+</style>

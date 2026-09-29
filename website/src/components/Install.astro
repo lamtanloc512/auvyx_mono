@@ -1,0 +1,87 @@
+---
+import { SITE } from "../config";
+const editors = [
+  { name: "VS Code", file: "settings.json", code: `"editor.fontFamily": "'Auvyx Mono', monospace",\n"editor.fontLigatures": true,\n"editor.fontSize": 14` },
+  { name: "Zed", file: "settings.json", code: `"buffer_font_family": "Auvyx Mono",\n"buffer_font_features": { "calt": true }` },
+  { name: "Ghostty", file: "config", code: `font-family = "Auvyx Mono"\nfont-size = 14` },
+  { name: "kitty", file: "kitty.conf", code: `font_family      Auvyx Mono\nbold_font        auto\nitalic_font      auto` },
+  { name: "Alacritty", file: "alacritty.toml", code: `[font]\nnormal = { family = "Auvyx Mono" }\nsize = 14` },
+  { name: "WezTerm", file: "wezterm.lua", code: `config.font = wezterm.font("Auvyx Mono")\nconfig.font_size = 14` },
+  { name: "JetBrains", file: "Settings", code: `Settings → Editor → Font\nFont: Auvyx Mono\n☑ Enable ligatures` },
+  { name: "CSS", file: "styles.css", code: `@font-face {\n  font-family: "Auvyx Mono";\n  src: url("AuvyxMono-Variable.woff2") format("woff2");\n  font-weight: 100 700;\n  font-display: swap;\n}\ncode, pre { font-family: "Auvyx Mono", monospace; }` },
+];
+const os = [
+  ["macOS", "Open the variable folder, select both .ttf files and double-click. Click Install Font."],
+  ["Windows", "Open the variable folder, select both .ttf files, right-click and choose Install for all users."],
+  ["Linux", "Copy the .ttf files to ~/.local/share/fonts, then run fc-cache -f."],
+];
+---
+<section id="install" class="install">
+  <div class="wrap">
+    <p class="eyebrow">Install</p>
+    <h2>Free for everyone. Ready in a minute.</h2>
+
+    <div class="dl card">
+      <div>
+        <h3>Auvyx Mono</h3>
+        <p class="muted">Variable + static TTF, OTF and WOFF2 · Upright & Italic · SIL Open Font License 1.1</p>
+      </div>
+      <a class="btn" href={SITE.download} download>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+        Download .zip
+      </a>
+    </div>
+
+    <ol class="os">
+      {os.map(([name, text]) => (
+        <li><h3>{name}</h3><p>{text}</p></li>
+      ))}
+    </ol>
+
+    <h3 class="sub">Set it as your editor font</h3>
+    <div class="ed-grid">
+      {editors.map((e) => (
+        <figure class="ed card">
+          <figcaption><span>{e.name}</span><span class="muted">{e.file}</span></figcaption>
+          <pre><code>{e.code}</code></pre>
+          <button class="copy chip" type="button" data-copy={e.code}>Copy</button>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>(".install .copy").forEach((b) =>
+    b.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.copy ?? "");
+        b.textContent = "Copied";
+      } catch {
+        b.textContent = "Press ⌘C";
+      }
+      setTimeout(() => (b.textContent = "Copy"), 1500);
+    })
+  );
+</script>
+
+<style>
+  .dl { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 28px; margin-top: 40px; }
+  .dl h3 { font-size: 26px; }
+  .dl p { margin: 8px 0 0; font-size: 14px; }
+  .muted { color: var(--muted); }
+  .os { list-style: none; padding: 0; margin: 28px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; counter-reset: s; }
+  .os li { counter-increment: s; }
+  .os h3::before { content: "0" counter(s) " "; color: var(--accent); }
+  .os p { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
+  .sub { margin: 64px 0 20px; font-size: 22px; }
+  .ed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+  .ed { position: relative; margin: 0; padding: 18px 18px 16px; display: grid; gap: 12px; align-content: start; }
+  figcaption { display: flex; justify-content: space-between; font-size: 13px; }
+  .ed pre { margin: 0; font: inherit; font-size: 13px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .copy { justify-self: start; }
+  @media (max-width: 760px) {
+    .dl { flex-direction: column; align-items: flex-start; }
+    .os { grid-template-columns: 1fr; }
+  }
+</style>

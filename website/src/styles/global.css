@@ -1,0 +1,136 @@
+@font-face {
+  font-family: "Auvyx Mono";
+  src: url("/fonts/AuvyxMono-Variable.woff2") format("woff2");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Auvyx Mono";
+  src: url("/fonts/AuvyxMono-Italic-Variable.woff2") format("woff2");
+  font-weight: 100 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --font: "Auvyx Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --maxw: 1180px;
+  --radius: 14px;
+
+  --bg: #f5f3ee;
+  --bg-2: #ece9e1;
+  --card: #fffdf8;
+  --fg: #141418;
+  --muted: #6b6973;
+  --line: #dedad0;
+  --accent: #e0492a;
+  --accent-soft: #e0492a1a;
+  --blue: #2c63d6;
+
+  --tok-kw: #b8326b;
+  --tok-fn: #2c63d6;
+  --tok-str: #2f7d4f;
+  --tok-num: #b35c00;
+  --tok-com: #8d8a95;
+  --tok-type: #7a44c4;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #0e0f13;
+  --bg-2: #14151b;
+  --card: #16171e;
+  --fg: #eeebe5;
+  --muted: #8f8c98;
+  --line: #262731;
+  --accent: #ff7a59;
+  --accent-soft: #ff7a591f;
+  --blue: #7aa2ff;
+
+  --tok-kw: #ff79b0;
+  --tok-fn: #7aa2ff;
+  --tok-str: #8bd5a0;
+  --tok-num: #ffb86b;
+  --tok-com: #6c6a78;
+  --tok-type: #c3a0ff;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  background: var(--bg);
+  color: var(--fg);
+  font-feature-settings: "calt" 1;
+  transition: background-color .25s ease, color .25s ease;
+}
+
+/* Trình duyệt mặc định cho <code>/<pre> dùng font "monospace" của hệ thống (Menlo) — ép về Auvyx Mono */
+pre, code, kbd, samp, output, input, button, textarea, select { font-family: var(--font); }
+
+a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent); }
+::selection { background: var(--accent); color: var(--bg); }
+
+.wrap { width: min(var(--maxw), 100% - 40px); margin-inline: auto; }
+
+section { padding: clamp(64px, 10vw, 120px) 0; border-top: 1px solid var(--line); }
+section:first-of-type { border-top: 0; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); margin: 0 0 18px;
+}
+.eyebrow code { color: var(--muted); letter-spacing: 0; text-transform: none; }
+
+h1, h2, h3 { font-weight: 700; line-height: 1.08; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: clamp(30px, 5vw, 56px); max-width: 18ch; }
+h3 { font-size: 20px; }
+.lead { font-size: clamp(16px, 1.6vw, 19px); color: var(--muted); max-width: 62ch; margin: 20px 0 0; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  font: inherit; font-weight: 600; font-size: 15px;
+  padding: 13px 20px; border-radius: 999px;
+  border: 1px solid var(--fg); background: var(--fg); color: var(--bg);
+  text-decoration: none; cursor: pointer;
+  transition: transform .15s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+}
+.btn:hover { transform: translateY(-1px); color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn.ghost:hover { border-color: var(--fg); color: var(--fg); background: transparent; }
+
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+}
+
+.chip {
+  font: inherit; font-size: 13px; color: var(--muted);
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
+  background: transparent; cursor: pointer; transition: all .15s ease;
+}
+.chip:hover { color: var(--fg); border-color: var(--fg); }
+.chip[aria-pressed="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+
+input[type="range"] { accent-color: var(--accent); width: 100%; }
+
+.visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }

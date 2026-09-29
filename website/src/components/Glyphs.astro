@@ -1,0 +1,116 @@
+---
+import data from "../data/glyphs.json";
+const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0");
+---
+<section id="glyphs" class="glyphs">
+  <div class="wrap">
+    <p class="eyebrow">Character set</p>
+    <h2>{data.charCount.toLocaleString("en-US")} characters, {data.glyphCount.toLocaleString("en-US")} glyphs.</h2>
+    <p class="lead">Hover or tap any character to inspect it. Box-drawing and Powerline symbols line up perfectly for terminal UIs.</p>
+
+    <div class="explorer">
+      <aside class="inspector card" aria-live="polite">
+        <div class="big" id="g-big">a</div>
+        <div class="info">
+          <div id="g-name">Latin Small Letter A</div>
+          <code id="g-cp">U+0061</code>
+        </div>
+        <div class="weights">
+          <label>Weight <input id="g-wght" type="range" min="100" max="700" value="400" /></label>
+          <button class="chip" type="button" id="g-it" aria-pressed="false">Italic</button>
+        </div>
+      </aside>
+
+      <div class="sets">
+        <div class="group-tabs" role="tablist" aria-label="Character groups">
+          {data.groups.map((g, i) => (
+            <button class="chip" type="button" role="tab" data-group={i} aria-selected={i === 0 ? "true" : "false"} aria-pressed={i === 0 ? "true" : "false"}>
+              {g.name} <span class="count">{g.chars.length}</span>
+            </button>
+          ))}
+        </div>
+        {data.groups.map((g, i) => (
+          <div class="grid" data-panel={i} hidden={i !== 0} role="tabpanel">
+            {g.chars.map(([cp, name]) => (
+              <button type="button" class="cell" data-name={name} data-cp={hex(cp as number)}>{String.fromCodePoint(cp as number)}</button>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const big = document.getElementById("g-big")!;
+  const nameEl = document.getElementById("g-name")!;
+  const cpEl = document.getElementById("g-cp")!;
+  const wght = document.getElementById("g-wght") as HTMLInputElement;
+  const it = document.getElementById("g-it")!;
+
+  function show(cell: HTMLElement) {
+    big.textContent = cell.textContent;
+    nameEl.textContent = cell.dataset.name ?? "";
+    nameEl.title = cell.dataset.name ?? "";
+    cpEl.textContent = cell.dataset.cp ?? "";
+  }
+  document.querySelectorAll<HTMLElement>(".glyphs .cell").forEach((c) => {
+    c.addEventListener("mouseenter", () => show(c));
+    c.addEventListener("focus", () => show(c));
+    c.addEventListener("click", () => show(c));
+  });
+  wght.addEventListener("input", () => (big.style.fontWeight = wght.value));
+  it.addEventListener("click", () => {
+    const on = it.getAttribute("aria-pressed") !== "true";
+    it.setAttribute("aria-pressed", String(on));
+    big.style.fontStyle = on ? "italic" : "normal";
+    document.querySelectorAll<HTMLElement>(".glyphs .grid").forEach((g) => (g.style.fontStyle = on ? "italic" : "normal"));
+  });
+  const tabs = [...document.querySelectorAll<HTMLElement>("[data-group]")];
+  tabs.forEach((t) =>
+    t.addEventListener("click", () => {
+      tabs.forEach((x) => {
+        const sel = x === t;
+        x.setAttribute("aria-selected", String(sel));
+        x.setAttribute("aria-pressed", String(sel));
+      });
+      document.querySelectorAll<HTMLElement>("[data-panel]").forEach((p) => (p.hidden = p.dataset.panel !== t.dataset.group));
+    })
+  );
+</script>
+
+<style>
+  .explorer { display: grid; grid-template-columns: 320px 1fr; gap: 24px; margin-top: 40px; align-items: start; }
+  .inspector { position: sticky; top: 88px; padding: 24px; display: grid; gap: 18px; }
+  .big {
+    display: grid; place-items: center; height: 240px; font-size: 180px; line-height: 1; overflow: hidden;
+    background:
+      linear-gradient(var(--line), var(--line)) 0 62% / 100% 1px no-repeat,
+      linear-gradient(var(--line), var(--line)) 0 30% / 100% 1px no-repeat;
+  }
+  .info { display: grid; gap: 6px; font-size: 14px; line-height: 1.6; }
+  /* Giữ chiều cao cố định (2 dòng) để khung không nhảy khi tên ký tự dài/ngắn */
+  #g-name {
+    height: 3.2em; overflow: hidden;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  }
+  .info code { color: var(--muted); height: 1.6em; }
+  .weights { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
+  .weights label { display: flex; align-items: center; gap: 10px; flex: 1; }
+  .group-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .count { opacity: .6; margin-left: 4px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    border-top: 1px solid var(--line); border-left: 1px solid var(--line);
+  }
+  .cell {
+    aspect-ratio: 1; font: inherit; font-size: 24px; color: inherit; background: transparent; cursor: pointer;
+    border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  }
+  .cell:hover, .cell:focus-visible { background: var(--fg); color: var(--bg); outline: none; border-radius: 0; }
+  @media (max-width: 860px) {
+    .explorer { grid-template-columns: 1fr; }
+    .inspector { position: static; }
+    .big { height: 180px; font-size: 130px; }
+  }
+</style>

@@ -1,0 +1,16 @@
+---
+import Base from "../layouts/Base.astro";
+import Nav from "../components/Nav.astro";
+---
+<Base title="Page not found — Auvyx Mono">
+  <Nav />
+  <main class="wrap nf">
+    <p class="eyebrow">404</p>
+    <h1>This page -> /dev/null</h1>
+    <p><a href="/">Back to Auvyx Mono</a></p>
+  </main>
+</Base>
+<style>
+  .nf { padding: 120px 0; }
+  h1 { font-size: clamp(36px, 7vw, 80px); }
+</style>

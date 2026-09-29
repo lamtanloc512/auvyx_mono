@@ -1,0 +1,85 @@
+---
+// Các biến thể OpenType có trong font. Bật trong editor bằng font-feature-settings.
+const variants = [
+  { tag: "zero", name: "Slashed zero", sample: "0O 100" },
+  { tag: "cv14", name: "Backslashed zero", sample: "0O 100" },
+  { tag: "cv04", name: "Plain zero", sample: "0O 100" },
+  { tag: "cv02", name: "Double-storey g", sample: "gg bag" },
+  { tag: "cv10", name: "High asterisk", sample: "a*b **" },
+  { tag: "cv13", name: "Curvier parentheses", sample: "f(x)" },
+  { tag: "cv15", name: "Number sign with crossbars", sample: "#tag" },
+  { tag: "cv09", name: "Empty dollar & cent", sample: "$9 ¢" },
+  { tag: "cv06", name: "Elongated tilde", sample: "~/dev" },
+  { tag: "cv08", name: "Classical ≤ ≥", sample: "<= >=" },
+  { tag: "cv11", name: "Connected |> <|", sample: "|> <|" },
+  { tag: "ss01", name: "Logical ops as arrows", sample: "<<= ||=" },
+  { tag: "ss02", name: "Broken equals", sample: "!= ==" },
+  { tag: "ss03", name: "Thin backslash", sample: "\\n \\t" },
+  { tag: "ss04", name: "Broken number signs", sample: "####" },
+];
+---
+<section class="variants">
+  <div class="wrap">
+    <p class="eyebrow">Character variants <code>cvXX · ssXX</code></p>
+    <h2>Make it yours.</h2>
+    <p class="lead">
+      Fifteen stylistic alternates are built in. Click a card to preview it,
+      then enable the ones you like with <code>font-feature-settings</code>.
+    </p>
+    <ul class="v-grid">
+      {variants.map((v) => (
+        <li>
+          <button class="v card" type="button" data-tag={v.tag} aria-pressed="false">
+            <span class="v-sample">{v.sample}</span>
+            <span class="v-meta"><code>{v.tag}</code> {v.name}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+    <p class="v-css">
+      <span class="muted">Your settings:</span>
+      <code id="v-out">"calt"</code>
+    </p>
+  </div>
+</section>
+
+<script>
+  const out = document.getElementById("v-out")!;
+  const cards = [...document.querySelectorAll<HTMLButtonElement>(".v")];
+  function refresh() {
+    const on = cards.filter((c) => c.getAttribute("aria-pressed") === "true").map((c) => `"${c.dataset.tag}"`);
+    out.textContent = ['"calt"', ...on].join(", ");
+  }
+  cards.forEach((c) =>
+    c.addEventListener("click", () => {
+      const on = c.getAttribute("aria-pressed") !== "true";
+      c.setAttribute("aria-pressed", String(on));
+      const sample = c.querySelector<HTMLElement>(".v-sample")!;
+      sample.style.fontFeatureSettings = on ? `"calt" 1, "${c.dataset.tag}" 1` : "";
+      refresh();
+    })
+  );
+</script>
+
+<style>
+  .v-grid {
+    list-style: none; margin: 40px 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px;
+    grid-auto-rows: 1fr; /* mọi hàng cao bằng hàng cao nhất → các card bằng nhau */
+  }
+  .v-grid li { display: flex; }
+  .v {
+    width: 100%; height: 100%; display: grid; grid-template-rows: auto 1fr; align-content: start;
+    gap: 14px; padding: 22px; text-align: left;
+    font: inherit; color: inherit; cursor: pointer; transition: border-color .15s, transform .15s;
+  }
+  .v:hover { border-color: var(--fg); transform: translateY(-1px); }
+  .v[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .v-sample { font-size: 34px; line-height: 1.1; white-space: nowrap; }
+  .v[aria-pressed="true"] .v-sample { color: var(--accent); }
+  .v-meta { font-size: 13px; color: var(--muted); }
+  .v-meta code { color: var(--fg); margin-right: 4px; }
+  .v-css { margin-top: 24px; font-size: 14px; }
+  .v-css code { color: var(--accent); }
+  .muted { color: var(--muted); }
+</style>

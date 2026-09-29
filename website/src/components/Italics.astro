@@ -1,0 +1,40 @@
+---
+---
+<section class="italics">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow">Italics</p>
+      <h2>A true italic, not a slanted afterthought.</h2>
+      <p class="lead">
+        The italic has its own rhythm: a single-storey <i>a</i> and <i>g</i>,
+        flowing <i>k l j r v w t f</i> and a straight, quiet <i>x</i>. It's perfect for comments,
+        keywords and emphasis without turning your code into calligraphy.
+      </p>
+    </div>
+    <div class="compare card">
+      <div class="row">
+        <span class="label">Upright</span>
+        <span class="glyphs">afgjklrtvwx</span>
+      </div>
+      <div class="row">
+        <span class="label">Italic</span>
+        <span class="glyphs" style="font-style:italic">afgjklrtvwx</span>
+      </div>
+      <pre class="snippet"><code><span class="c">// fetch the user, then render the view</span>
+<span class="k">let</span> view = <span class="k">await</span> <span class="f">load</span>(user);</code></pre>
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 56px; align-items: center; }
+  .compare { padding: 28px; }
+  .row { display: grid; grid-template-columns: 90px 1fr; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .label { font-size: 13px; color: var(--muted); }
+  .glyphs { font-size: clamp(36px, 5.2vw, 64px); line-height: 1.25; letter-spacing: .02em; }
+  .snippet { margin: 22px 0 0; font: inherit; font-size: 15px; line-height: 1.7; white-space: pre-wrap; }
+  .snippet .c { color: var(--tok-com); font-style: italic; }
+  .snippet .k { color: var(--tok-kw); font-style: italic; }
+  .snippet .f { color: var(--tok-fn); }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; gap: 32px; } }
+</style>
