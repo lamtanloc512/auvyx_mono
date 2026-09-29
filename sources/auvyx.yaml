@@ -10,8 +10,8 @@ copyright: Copyright 2026 Ethan Lam
 designer: Ethan Lam
 vendor_url: ""              # để trống = xoá URL vendor của Lilex
 
-# Độ rộng ô monospace (Lilex: 600). Nhỏ hơn = chữ khít hơn.
-cell_width: 590
+# Recursive Mono Linear và Lilex cùng dùng ô 600 units; giữ nguyên spacing của font gốc.
+cell_width: 600
 
 # Các biến thể được "gắn cứng" làm mặc định.
 # Bật lại feature đó trong editor sẽ trả về glyph gốc của Lilex.

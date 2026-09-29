@@ -51,7 +51,7 @@ const stats = [
   .hero-title {
     font-family: var(--font-mono); font-variation-settings: normal;
     font-size: clamp(44px, 12vw, 160px);
-    line-height: 1; letter-spacing: -0.04em; font-weight: 700;
+    line-height: 1; letter-spacing: normal; font-weight: 700;
     margin: 0 0 28px; white-space: nowrap;
   }
   .hero-title span {
@@ -85,7 +85,7 @@ const stats = [
   .stats dt { font-family: var(--font-mono); font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; line-height: 1; }
   .stats dd { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
   @media (max-width: 720px) {
-    .hero-title { font-size: clamp(32px, 9.5vw, 60px); letter-spacing: -.06em; }
+    .hero-title { font-size: clamp(32px, 9.5vw, 60px); }
     .hero-code { padding: 16px; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .stats div { padding: 16px; }

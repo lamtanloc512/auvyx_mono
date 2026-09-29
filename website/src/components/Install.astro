@@ -1,5 +1,6 @@
 ---
 import { SITE } from "../config";
+import { highlight } from "../lib/highlight";
 const editors = [
   { name: "VS Code", file: "settings.json", code: `"editor.fontFamily": "'Auvyx Mono', monospace",\n"editor.fontLigatures": true,\n"editor.fontSize": 14` },
   { name: "Zed", file: "settings.json", code: `"buffer_font_family": "Auvyx Mono",\n"buffer_font_features": { "calt": true }` },
@@ -38,12 +39,22 @@ const os = [
       ))}
     </ol>
 
-    <h3 class="sub">Set it as your editor font</h3>
-    <div class="ed-grid">
+    <div class="settings-head">
+      <h3 class="sub">Set it as your editor font</h3>
+      <label for="settings-theme">Code theme
+        <select id="settings-theme" data-code-theme-control>
+          <option value="auto">Match site</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+    </div>
+    <p class="ed-hint">Scroll sideways for more editor settings. Long lines stay on one line.</p>
+    <div class="ed-grid" data-code-theme="auto" role="region" aria-label="Editor settings, scroll horizontally" tabindex="0">
       {editors.map((e) => (
         <figure class="ed card">
           <figcaption><span>{e.name}</span><span class="muted">{e.file}</span></figcaption>
-          <pre><code>{e.code}</code></pre>
+          <pre><code set:html={highlight(e.code, "ts")} /></pre>
           <button class="copy chip" type="button" data-copy={e.code}>Copy</button>
         </figure>
       ))}
@@ -74,12 +85,39 @@ const os = [
   .os li { counter-increment: s; }
   .os h3::before { content: "0" counter(s) " "; color: var(--accent); }
   .os p { color: var(--muted); font-size: 14px; margin: 10px 0 0; }
-  .sub { margin: 64px 0 20px; font-size: 22px; }
-  .ed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-  .ed { position: relative; margin: 0; padding: 18px 18px 16px; display: grid; gap: 12px; align-content: start; }
-  figcaption { display: flex; justify-content: space-between; font-size: 13px; }
-  .ed pre { margin: 0; font: 13px/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
-  .copy { justify-self: start; }
+  .settings-head { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin: 64px 0 16px; }
+  .sub { font-size: 22px; }
+  .settings-head label { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .settings-head select { padding: 8px 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font-size: 13px; }
+  .ed-hint { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+  .ed-grid {
+    --code-bg: var(--card); --code-fg: var(--fg); --code-muted: var(--muted); --code-line: var(--line);
+    --code-comment: var(--tok-com); --code-keyword: var(--tok-kw);
+    --code-function: var(--tok-fn); --code-string: var(--tok-str);
+    --code-number: var(--tok-num); --code-type: var(--tok-type);
+    display: flex; gap: 12px; overflow-x: auto; padding-bottom: 14px; scrollbar-width: thin; scroll-snap-type: x proximity;
+  }
+  .ed-grid[data-code-theme="light"] {
+    --code-bg: #fff; --code-fg: #161616; --code-muted: #525252; --code-line: #e0e0e0;
+    --code-comment: #787878; --code-keyword: #b8326b; --code-function: #2c63d6;
+    --code-string: #2f7d4f; --code-number: #a55300; --code-type: #7a44c4;
+  }
+  .ed-grid[data-code-theme="dark"] {
+    --code-bg: #161616; --code-fg: #f7f7f7; --code-muted: #b8b8b8; --code-line: #3b3b3b;
+    --code-comment: #a0a0a0; --code-keyword: #ff79b0; --code-function: #7aa2ff;
+    --code-string: #8bd5a0; --code-number: #ffb86b; --code-type: #c3a0ff;
+  }
+  .ed { flex: 0 0 auto; width: max-content; min-width: 310px; position: relative; margin: 0; padding: 18px 18px 16px; display: grid; gap: 12px; align-content: start; scroll-snap-align: start; background: var(--code-bg); color: var(--code-fg); border-color: var(--code-line); }
+  figcaption { display: flex; justify-content: space-between; gap: 24px; font-size: 13px; }
+  .ed .muted { color: var(--code-muted); }
+  .ed pre { margin: 0; font: 13px/1.6 var(--font-mono); white-space: pre; }
+  .ed pre :global(.c) { color: var(--code-comment); }
+  .ed pre :global(.k) { color: var(--code-keyword); }
+  .ed pre :global(.f) { color: var(--code-function); }
+  .ed pre :global(.s) { color: var(--code-string); }
+  .ed pre :global(.n) { color: var(--code-number); }
+  .ed pre :global(.t) { color: var(--code-type); }
+  .copy { justify-self: start; color: var(--code-fg); border-color: var(--code-line); }
   @media (max-width: 760px) {
     .dl { flex-direction: column; align-items: flex-start; }
     .os { grid-template-columns: 1fr; }

@@ -24,7 +24,7 @@ support. Available as static TTF/OTF, variable TTF and WOFF2.
 - **Ligatures** — `=> != === |> :: && <= /* */ <!--` … turn them off with `calt` if you prefer.
 - **Character variants** — slashed/plain/backslashed zero, double-storey `g`, high asterisk, curvier parentheses and more (`cv02 cv04 cv06 cv08–cv11 cv13–cv15 zero ss01–ss04`).
 - **Languages** — Latin (incl. Vietnamese), Greek and Cyrillic; box drawing and Powerline symbols.
-- **Comfortable spacing** — a slightly tighter 590-unit cell.
+- **Consistent spacing** — a 600-unit cell, matching Recursive Mono Linear.
 
 <p align="center"><img src="./images/specimen.png" alt="Specimen: Lorem ipsum and Vietnamese text" width="100%"></p>
 

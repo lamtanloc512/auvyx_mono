@@ -6,7 +6,7 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   <div class="wrap">
     <p class="eyebrow">Character set</p>
     <h2>{data.charCount.toLocaleString("en-US")} characters, {data.glyphCount.toLocaleString("en-US")} glyphs.</h2>
-    <p class="lead">Hover or tap any character to inspect it. Box-drawing and Powerline symbols line up perfectly for terminal UIs.</p>
+    <p class="lead">Click or tap any character to inspect it. Box-drawing and Powerline symbols line up perfectly for terminal UIs.</p>
 
     <div class="explorer">
       <aside class="inspector card" aria-live="polite">
@@ -29,7 +29,6 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
             </button>
           ))}
         </div>
-        <p class="grid-hint">Scroll inside the grid to see more characters.</p>
         {data.groups.map((g, i) => (
           <div class="grid" data-panel={i} hidden={i !== 0} role="tabpanel">
             {g.chars.map(([cp, name]) => (
@@ -49,17 +48,22 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   const wght = document.getElementById("g-wght") as HTMLInputElement;
   const it = document.getElementById("g-it")!;
 
+  let selected: HTMLElement | null = null;
   function show(cell: HTMLElement) {
+    selected?.removeAttribute("aria-pressed");
+    cell.setAttribute("aria-pressed", "true");
+    selected = cell;
     big.textContent = cell.textContent;
     nameEl.textContent = cell.dataset.name ?? "";
     nameEl.title = cell.dataset.name ?? "";
     cpEl.textContent = cell.dataset.cp ?? "";
   }
   document.querySelectorAll<HTMLElement>(".glyphs .cell").forEach((c) => {
-    c.addEventListener("mouseenter", () => show(c));
     c.addEventListener("focus", () => show(c));
     c.addEventListener("click", () => show(c));
   });
+  const initial = document.querySelector<HTMLElement>('.glyphs .cell[data-cp="U+0061"]');
+  if (initial) show(initial);
   wght.addEventListener("input", () => (big.style.fontWeight = wght.value));
   it.addEventListener("click", () => {
     const on = it.getAttribute("aria-pressed") !== "true";
@@ -100,7 +104,6 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   .weights label { display: flex; align-items: center; gap: 10px; flex: 1; }
   .group-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .count { opacity: .6; margin-left: 4px; }
-  .grid-hint { display: none; color: var(--muted); font-size: 13px; margin: 0 0 12px; }
   .grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
     border-top: 1px solid var(--line); border-left: 1px solid var(--line);
@@ -109,14 +112,16 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
     aspect-ratio: 1; font: 24px/1 var(--font-mono); color: inherit; background: transparent; cursor: pointer;
     border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
   }
-  .cell:hover, .cell:focus-visible { background: var(--fg); color: var(--bg); outline: none; border-radius: 0; }
+  .cell[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+  .cell:hover { background: var(--bg-2); }
+  .cell[aria-pressed="true"]:hover { background: var(--fg); }
+  .cell:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 0; }
   @media (max-width: 860px) {
     .explorer { grid-template-columns: 1fr; gap: 16px; }
     .inspector { position: static; grid-template-columns: 110px minmax(0, 1fr); align-items: center; padding: 16px; gap: 12px 16px; }
     .big { grid-row: span 2; height: 110px; font-size: 80px; }
     .weights { grid-column: 2; }
-    .grid-hint { display: block; }
-    .grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); max-height: 520px; overflow-y: auto; overscroll-behavior: contain; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
     .cell { font-size: 21px; }
   }
   @media (max-width: 380px) {
