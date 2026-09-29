@@ -142,7 +142,7 @@ def slant_from_upright(italic: ttLib.TTFont, upright: ttLib.TTFont, name: str) -
                 v = copy.deepcopy(var)
                 full = _full_deltas(upright, name, var)
                 pts, phantom = full[: len(ucoords)], full[len(ucoords):]
-                sheared = [(round(ddx + t * ddy), ddy) for ddx, ddy in pts]
+                sheared = [(round(ddx + t * ddy), round(ddy)) for ddx, ddy in pts]
                 v.coordinates = sheared + phantom
                 new_vars.append(v)
             italic["gvar"].variations[name] = new_vars
@@ -327,6 +327,26 @@ def _stroke(coords, ends, flags) -> float:
     return 2 * area / (area - inner.sum()) / sc
 
 
+def _stem(coords, ends, flags, q: float = 80) -> float:
+    """Độ dày nét chính: phân vị q của bề rộng nét đo dọc 'xương' chữ (distance transform).
+    Khác 2A/P, cách đo này bám theo các nét dày (thân, vòm) nên hợp để làm các nét bằng nhau."""
+    import numpy as np
+    from fontTools.pens.freetypePen import FreeTypePen
+    from scipy import ndimage
+
+    g = _make_glyph(coords, ends, flags)
+    pen = FreeTypePen(None)
+    g.draw(pen, None)
+    sc = 0.6
+    a = np.asarray(pen.array(width=int(1500 * sc), height=int(1600 * sc), transform=(sc, 0, 0, sc, 450 * sc, 450 * sc),
+                             contain=False)) > 0.5
+    if not a.any():
+        return 0.0
+    dt = ndimage.distance_transform_edt(a)
+    ridge = (dt >= ndimage.maximum_filter(dt, size=3) - 1e-6) & (dt > 1.5)
+    return float(np.percentile(2 * dt[ridge], q)) / sc if ridge.any() else 0.0
+
+
 def _import_masters(spec: dict, root: Path) -> dict:
     """Trả về {char: {lilex_wght: (coords, ends, flags)}} đã khớp zone (và khớp độ dày nét nếu bật)."""
     key = ("masters", id(spec))
@@ -338,7 +358,10 @@ def _import_masters(spec: dict, root: Path) -> dict:
     wmin, wmax = axes["wght"].minValue, axes["wght"].maxValue
     loc = dict(spec.get("location", {}))
     chars = spec["chars"].replace(" ", "")
-    t = math.tan(math.radians(-loc.get("slnt", 0)))
+    # góc nghiêng (độ) của font nguồn và của đích; khác nhau thì dựng thẳng rồi nghiêng lại
+    src_slant = spec.get("source_slant", -loc.get("slnt", 0))
+    t_src = math.tan(math.radians(src_slant))
+    t = math.tan(math.radians(spec.get("target_slant", src_slant)))
     zs, zt = spec["zones"]["source"], spec["zones"]["target"]
     step = spec.get("extrapolate_step", 50)
 
@@ -362,7 +385,7 @@ def _import_masters(spec: dict, root: Path) -> dict:
         coords, ends, flags = raw(name, w)
         out = []
         for x, y in coords:
-            xu = x - t * y
+            xu = x - t_src * y
             y2 = zone(y)
             out.append((xu + t * y2, y2))
         return out, ends, flags
@@ -384,11 +407,19 @@ def _import_masters(spec: dict, root: Path) -> dict:
         for lw, sw in spec["masters"].items():
             lw = int(lw)
             if ref is not None and ord(ch) in ref_cmap:
-                target = _stroke(*_outline_at(ref, ref_cmap[ord(ch)], {"wght": lw}))
-                lo, hi = wmin - 3 * step, wmax
-                for _ in range(14):  # chia đôi: độ dày nét tăng đơn điệu theo wght
+                if spec.get("match_stroke") == "stem":
+                    # mọi chữ ghép vào có nét chính dày bằng thân chữ chuẩn của Lilex (n cho chữ thường, H cho chữ hoa)
+                    rc = "H" if ch.isupper() else "n"
+                    target = _stem(*_outline_at(ref, ref_cmap[ord(rc)], {"wght": lw}))
+                    metric = _stem
+                else:
+                    target = _stroke(*_outline_at(ref, ref_cmap[ord(ch)], {"wght": lw}))
+                    metric = _stroke
+                # giới hạn ngoại suy: quá xa thì outline tự cắt nhau (nét âm) → vỡ chữ ở Thin
+                lo, hi = spec.get("min_wght", wmin - 1.6 * step), wmax
+                for _ in range(13):  # chia đôi: độ dày nét tăng đơn điệu theo wght
                     mid = (lo + hi) / 2
-                    if _stroke(*fitted(name, mid)) < target:
+                    if metric(*fitted(name, mid)) < target:
                         lo = mid
                     else:
                         hi = mid
@@ -529,10 +560,48 @@ def _scale_type(font: ttLib.TTFont, name: str, rev: dict) -> bool:
     return cp is not None and any(a <= cp <= b for a, b in _BOX_RANGES)
 
 
+def _fix_empty_widths(font: ttLib.TTFont, new: int) -> None:
+    """Glyph rỗng có độ rộng lệch (vd: U+2028/2029 của Lilex) → đưa về đúng ô, bỏ biến thiên độ rộng."""
+    hmtx = font["hmtx"]
+    order = font.getGlyphOrder()
+    for n, (w, _) in list(hmtx.metrics.items()):
+        empty_glyf = "glyf" in font and font["glyf"][n].numberOfContours == 0
+        if w in (0, new) and not (empty_glyf and "gvar" in font and n in font["gvar"].variations):
+            continue
+        if "glyf" in font:
+            if font["glyf"][n].numberOfContours != 0:
+                continue
+        else:
+            bp = BoundsPen(None)
+            font.getGlyphSet()[n].draw(bp)
+            if bp.bounds is not None:
+                continue
+            top = font["CFF "].cff.topDictIndex[0]
+            top.CharStrings[n] = T2CharStringPen(new, None).getCharString(
+                private=top.Private, globalSubrs=font["CFF "].cff.GlobalSubrs
+            )
+        if w != 0:
+            hmtx[n] = (new, 0)
+        if "gvar" in font:
+            font["gvar"].variations.pop(n, None)
+        if "HVAR" in font:
+            hv = font["HVAR"].table
+            if hv.AdvWidthMap is None:
+                outer, inner = 0, order.index(n)
+            else:
+                idx = hv.AdvWidthMap.mapping[n]
+                outer, inner = idx >> 16, idx & 0xFFFF
+            vd = hv.VarStore.VarData[outer]
+            if inner < len(vd.Item):
+                vd.Item[inner] = [0] * len(vd.Item[inner])
+
+
 def set_cell_width(font: ttLib.TTFont, new: int) -> int:
     hmtx = font["hmtx"]
     old = max(w for w, _ in hmtx.metrics.values())
     if new == old:
+        _fix_empty_widths(font, new)          # vẫn sửa các glyph rỗng lệch độ rộng (vd U+2028/2029 của Lilex)
+        font["OS/2"].xAvgCharWidth = new
         return 0
     k = new / old
     shift = (old - new) / 2
@@ -607,38 +676,7 @@ def set_cell_width(font: ttLib.TTFont, new: int) -> int:
                     for a in rec.BaseAnchor:
                         if a is not None:
                             a.XCoordinate = round(fx(gname, a.XCoordinate))
-    # glyph rỗng có độ rộng lệch (vd: U+2028/2029 của Lilex) → đưa về đúng ô
-    order = font.getGlyphOrder()
-    for n, (w, _) in list(hmtx.metrics.items()):
-        empty_glyf = "glyf" in font and font["glyf"][n].numberOfContours == 0
-        if w in (0, new) and not (empty_glyf and "gvar" in font and n in font["gvar"].variations):
-            continue
-        if "glyf" in font:
-            if font["glyf"][n].numberOfContours != 0:
-                continue
-        else:
-            bp = BoundsPen(None)
-            font.getGlyphSet()[n].draw(bp)
-            if bp.bounds is not None:
-                continue
-            top = font["CFF "].cff.topDictIndex[0]
-            top.CharStrings[n] = T2CharStringPen(new, None).getCharString(
-                private=top.Private, globalSubrs=font["CFF "].cff.GlobalSubrs
-            )
-        if w != 0:
-            hmtx[n] = (new, 0)
-        if "gvar" in font:
-            font["gvar"].variations.pop(n, None)
-        if "HVAR" in font:
-            hv = font["HVAR"].table
-            if hv.AdvWidthMap is None:
-                outer, inner = 0, order.index(n)
-            else:
-                idx = hv.AdvWidthMap.mapping[n]
-                outer, inner = idx >> 16, idx & 0xFFFF
-            vd = hv.VarStore.VarData[outer]
-            if inner < len(vd.Item):
-                vd.Item[inner] = [0] * len(vd.Item[inner])
+    _fix_empty_widths(font, new)
     font["OS/2"].xAvgCharWidth = new
     return len(names)
 
@@ -681,7 +719,24 @@ def transform(font: ttLib.TTFont, item: Path, cfg: dict) -> tuple[set, list]:
     return changed, notes
 
 
+def drop_features(font: ttLib.TTFont, tags) -> int:
+    """Vô hiệu hoá các feature (giữ tag nhưng không còn lookup) — vd: biến thể chữ không hợp với glyph đã thay."""
+    n = 0
+    if "GSUB" in font:
+        for rec in font["GSUB"].table.FeatureList.FeatureRecord:
+            if rec.FeatureTag in tags and rec.Feature.LookupListIndex:
+                rec.Feature.LookupListIndex = []
+                rec.Feature.LookupCount = 0
+                n += 1
+    return n
+
+
 def finalize(font: ttLib.TTFont, cfg: dict, notes: list) -> None:
+    df = cfg.get("drop_features")
+    if isinstance(df, dict):                     # {upright: [...], italic: [...]}
+        df = df.get("italic" if is_italic(font) else "upright") or []
+    if df:
+        notes.append(f"drop:{drop_features(font, set(df))}")
     if cfg.get("cell_width"):
         notes.append(f"width→{cfg['cell_width']}:{set_cell_width(font, int(cfg['cell_width']))}")
 

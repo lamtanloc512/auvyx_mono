@@ -1,0 +1,38 @@
+---
+const sample = "fn main() -> Result<(), Error> {\n    let greeting = \"Xin chào\";\n    println!(\"{greeting}, 2026\");\n}";
+---
+<section class="families">
+  <div class="wrap">
+    <p class="eyebrow">Two families</p>
+    <h2>Pick your flavour.</h2>
+    <p class="lead">
+      <b>Auvyx Mono</b> mixes open, friendly letters with a sturdy skeleton. <b>Auvyx Mono Linear</b> swaps the
+      upright letters and figures for a cleaner, more geometric set — same symbols, same ligatures, same italic.
+      Both ship in every download.
+    </p>
+    <div class="pair">
+      <figure class="card classic">
+        <figcaption><b>Auvyx Mono</b><span>font-family: "Auvyx Mono"</span></figcaption>
+        <p class="big">Aa gy 0123</p>
+        <pre><code>{sample}</code></pre>
+      </figure>
+      <figure class="card linear">
+        <figcaption><b>Auvyx Mono Linear</b><span>font-family: "Auvyx Mono Linear"</span></figcaption>
+        <p class="big">Aa gy 0123</p>
+        <pre><code>{sample}</code></pre>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+  figure { margin: 0; padding: 26px; display: grid; gap: 18px; min-width: 0; }
+  figcaption { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+  figcaption span { color: var(--muted); font-size: 12px; }
+  .big { margin: 0; font-size: clamp(56px, 8vw, 104px); line-height: 1; font-weight: 500; }
+  pre { margin: 0; font-size: 15px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .classic .big, .classic pre, .classic code { font-family: "Auvyx Mono", var(--font); }
+  .linear .big, .linear pre, .linear code { font-family: "Auvyx Mono Linear", var(--font); }
+  @media (max-width: 860px) { .pair { grid-template-columns: 1fr; } }
+</style>

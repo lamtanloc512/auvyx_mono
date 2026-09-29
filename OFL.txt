@@ -1,6 +1,6 @@
-Copyright 2026 Ethan Lam (Auvyx Mono, modified version of Lilex)
-Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive) — upright a f j t s w r A F J T S W R, italic k l j r v w t f K L J R V W T F
-Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font) — upright o O
+Copyright 2026 Lam Tan Loc (Auvyx Mono, modified version of Lilex)
+Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive) — upright a f j l t s w r y A F J T S W R, italic k l j r v w t f y K L J R V W T F
+Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font) — upright o O; letters and figures of Auvyx Mono Linear
 Copyright 2019 The Lilex Project Authors (https://github.com/mishamyrt/Lilex)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

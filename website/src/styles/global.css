@@ -1,18 +1,17 @@
+/* Font chính của trang: Auvyx Mono Linear (chữ Geist Mono). Auvyx Mono vẫn dùng ở mục so sánh & khung gõ thử. */
 :root {
-  --font: "Auvyx Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --font-title: var(--font);
-  --font-mono: var(--font);
+  --font: "Auvyx Mono Linear", "Auvyx Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --maxw: 1180px;
-  --radius: 0px;
+  --radius: 14px;
 
-  --bg: #ffffff;
-  --bg-2: #f4f4f4;
-  --card: #ffffff;
-  --fg: #161616;
-  --muted: #525252;
-  --line: #e0e0e0;
-  --accent: #c65a32;
-  --accent-soft: #c65a321a;
+  --bg: #f5f3ee;
+  --bg-2: #ece9e1;
+  --card: #fffdf8;
+  --fg: #141418;
+  --muted: #6b6973;
+  --line: #dedad0;
+  --accent: #e0492a;
+  --accent-soft: #e0492a1a;
   --blue: #2c63d6;
 
   --tok-kw: #b8326b;
@@ -25,14 +24,14 @@
 }
 
 [data-theme="dark"] {
-  --bg: #161616;
-  --bg-2: #222222;
-  --card: #1d1d1d;
-  --fg: #f7f7f7;
-  --muted: #b8b8b8;
-  --line: #3b3b3b;
-  --accent: #e88159;
-  --accent-soft: #e8815926;
+  --bg: #0e0f13;
+  --bg-2: #14151b;
+  --card: #16171e;
+  --fg: #eeebe5;
+  --muted: #8f8c98;
+  --line: #262731;
+  --accent: #ff7a59;
+  --accent-soft: #ff7a591f;
   --blue: #7aa2ff;
 
   --tok-kw: #ff79b0;
@@ -65,57 +64,55 @@ body {
   transition: background-color .25s ease, color .25s ease;
 }
 
-pre, code, kbd, samp, output { font-family: var(--font-mono); }
-input, button, textarea, select { font-family: var(--font); }
+/* Trình duyệt mặc định cho <code>/<pre> dùng font "monospace" của hệ thống (Menlo) — ép về Auvyx Mono */
+pre, code, kbd, samp, output, input, button, textarea, select { font-family: var(--font); }
 
 a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
 a:hover { color: var(--accent); }
 ::selection { background: var(--accent); color: var(--bg); }
 
-.wrap { width: min(var(--maxw), 100% - 48px); margin-inline: auto; }
-@media (max-width: 600px) { .wrap { width: calc(100% - 32px); } }
+.wrap { width: min(var(--maxw), 100% - 40px); margin-inline: auto; }
 
-section { padding: clamp(64px, 10vw, 120px) 0; border-top: 1px solid var(--line); scroll-margin-top: 120px; }
+section { padding: clamp(64px, 10vw, 120px) 0; border-top: 1px solid var(--line); }
 section:first-of-type { border-top: 0; }
 
 .eyebrow {
   display: inline-flex; align-items: center; gap: 10px;
-  font: 500 12px/1.5 var(--font-mono); letter-spacing: .06em; text-transform: uppercase;
+  font-size: 13px; letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent); margin: 0 0 18px;
 }
 .eyebrow code { color: var(--muted); letter-spacing: 0; text-transform: none; }
 
-h1, h2, h3 { font-family: var(--font-title); font-weight: 700; line-height: 1.12; margin: 0; letter-spacing: normal; }
-h2 { font-size: clamp(30px, 4.2vw, 52px); max-width: 22ch; }
+h1, h2, h3 { font-weight: 700; line-height: 1.08; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: clamp(30px, 5vw, 56px); max-width: 18ch; }
 h3 { font-size: 20px; }
 .lead { font-size: clamp(16px, 1.6vw, 19px); color: var(--muted); max-width: 62ch; margin: 20px 0 0; }
 
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
-  font: 600 14px/1.4 var(--font);
-  padding: 13px 20px; border-radius: var(--radius);
-  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  font: inherit; font-weight: 600; font-size: 15px;
+  padding: 13px 20px; border-radius: 999px;
+  border: 1px solid var(--fg); background: var(--fg); color: var(--bg);
   text-decoration: none; cursor: pointer;
   transition: transform .15s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
 }
-.btn:hover { transform: translateY(-1px); color: #fff; background: #a84626; border-color: #a84626; }
+.btn:hover { transform: translateY(-1px); color: var(--bg); background: var(--accent); border-color: var(--accent); }
 .btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
-.btn.ghost:hover { border-color: var(--fg); color: var(--fg); background: var(--bg-2); }
+.btn.ghost:hover { border-color: var(--fg); color: var(--fg); background: transparent; }
 
 .card {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
 }
 
 .chip {
-  font: 500 13px/1.4 var(--font); color: var(--muted);
-  padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--line);
+  font: inherit; font-size: 13px; color: var(--muted);
+  padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line);
   background: transparent; cursor: pointer; transition: all .15s ease;
 }
 .chip:hover { color: var(--fg); border-color: var(--fg); }
 .chip[aria-pressed="true"] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
 
 input[type="range"] { accent-color: var(--accent); width: 100%; }
-@media (max-width: 600px) { section { padding: 64px 0; scroll-margin-top: 110px; } }
 
 .visually-hidden {
   position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;

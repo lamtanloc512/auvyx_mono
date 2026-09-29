@@ -8,14 +8,15 @@ First release of Auvyx Mono, a fork of Lilex 2.700.
 
 ### Changed
 
-- Family renamed to **Auvyx Mono**; tighter 590-unit cell (was 600).
-- Upright `a f j t s w r A F J T S W R` from Recursive Mono Linear (`f` without foot), `o O ơ ø Ơ Ø` from Geist Mono.
-- Italic `k l j r v w t f K L J R V W T F` from Recursive Mono Linear; straight italic `x`.
+- Family renamed to **Auvyx Mono**; keeps the original 600-unit cell.
+- Upright `a f j l t s w r y A F J T S W R` from Recursive Mono Linear (`f` without foot), `o O ơ ø Ơ Ø` from Geist Mono.
+- Italic `k l j r v w t f y K L J R V W T F` from Recursive Mono Linear; plain (non-swash) italic `x` and `z`.
 - Single-storey `g` (former `cv02`) is the default in the upright; `cv02` now restores the double-storey `g`.
-- Borrowed glyphs are weight-matched per glyph by stroke thickness across all weights.
+- Borrowed glyphs are weight-matched per glyph so their main strokes equal the base stem (`n` / `H`) in every weight.
 
 ### Added
 
+- **Auvyx Mono Linear**: sister family with upright Latin letters and figures from Geist Mono (`l` from Recursive); italic shared with Auvyx Mono.
 - Website (`website/`) and intro video (`website/video/`).
 
 ---

@@ -51,16 +51,21 @@ def main() -> None:
 
     fonts_out = ROOT / "public" / "fonts"
     fonts_out.mkdir(parents=True, exist_ok=True)
-    for name in ("AuvyxMono[wght].woff2", "AuvyxMono-Italic[wght].woff2"):
-        shutil.copy2(SRC / "webfonts" / name, fonts_out / name.replace("[wght]", "-Variable"))
+    for fam in ("AuvyxMono", "AuvyxMonoLinear"):
+        wf = SRC.parent / fam / "webfonts"
+        for name in (f"{fam}[wght].woff2", f"{fam}-Italic[wght].woff2"):
+            if (wf / name).exists():
+                shutil.copy2(wf / name, fonts_out / name.replace("[wght]", "-Variable"))
 
     dl = ROOT / "public" / "download"
     dl.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(dl / "AuvyxMono.zip", "w", zipfile.ZIP_DEFLATED) as z:
-        for sub in ("ttf", "otf", "variable", "webfonts"):
-            for f in sorted((SRC / sub).glob("*")):
-                z.write(f, f"AuvyxMono/{sub}/{f.name}")
-        z.write(FONT_REPO / "OFL.txt", "AuvyxMono/OFL.txt")
+        for fam in ("AuvyxMono", "AuvyxMonoLinear"):                 # kèm bản Linear nếu đã build
+            base = SRC.parent / fam
+            for sub in ("ttf", "otf", "variable", "webfonts"):
+                for f in sorted((base / sub).glob("*")) if base.is_dir() else []:
+                    z.write(f, f"{fam}/{sub}/{f.name}")
+        z.write(FONT_REPO / "OFL.txt", "OFL.txt")
 
     font = TTFont(SRC / "variable" / "AuvyxMono[wght].ttf")
     cmap = font.getBestCmap()
@@ -78,7 +83,8 @@ def main() -> None:
     }
     (ROOT / "src" / "data" / "glyphs.json").write_text(json.dumps(meta, ensure_ascii=False))
 
-    make_og(SRC / "ttf")
+    lin = SRC.parent / "AuvyxMonoLinear" / "ttf"
+    make_og(lin if lin.is_dir() else SRC / "ttf")   # ảnh chia sẻ dùng font chính của trang (Linear)
     print(f"OK: {meta['charCount']} ký tự, {meta['glyphCount']} glyph, {meta['version']}")
 
 
@@ -104,16 +110,14 @@ def make_og(ttf_dir: Path) -> None:
         return pen.image(width=max(x, 1) * sc, height=1250 * sc, transform=(sc, 0, 0, sc, 0, 280 * sc), contain=False)
 
     W, H = 1200, 630
-    img = Image.new("RGB", (W, H), "#161616")
-    mark = Image.open(ROOT / "public" / "brand" / "mark-dark-1024.png").convert("RGB")
-    img.paste(mark.resize((84, 84), Image.Resampling.LANCZOS), (70, 48))
+    img = Image.new("RGB", (W, H), "#101116")
 
     def put(im, xy, color):
         img.paste(Image.new("RGB", im.size, color), xy, im.split()[-1])
 
-    put(text(ttf_dir / "AuvyxMono-Bold.ttf", "Auvyx Mono", 150), (70, 150), "#ffffff")
-    put(text(ttf_dir / "AuvyxMono-Italic.ttf", "a monospaced typeface for code", 44), (78, 360), "#c65a32")
-    put(text(ttf_dir / "AuvyxMono-Regular.ttf", "=> != === |> ... Tiếng Việt · Thin → Bold", 32), (80, 470), "#b8b8b8")
+    put(text(next(ttf_dir.glob("*-Bold.ttf")), "Auvyx Mono", 150), (70, 150), "#f2efe9")
+    put(text(next(ttf_dir.glob("*-Italic.ttf")), "a monospaced typeface for code", 44), (78, 360), "#ff7a59")
+    put(text(next(ttf_dir.glob("*-Regular.ttf")), "=> != === |> ... Tiếng Việt · Thin → Bold", 32), (80, 470), "#9a98a3")
     out = ROOT / "public" / "og.png"
     img.save(out, optimize=True)
 

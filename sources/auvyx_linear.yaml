@@ -1,0 +1,85 @@
+# Auvyx Mono Linear — biến thể "linear":
+#   bộ ĐỨNG: toàn bộ chữ cái và chữ số lấy từ Geist Mono (OFL)
+#   bộ NGHIÊNG: giống hệt Auvyx Mono (chữ nghiêng Recursive, f thường không chân, x thẳng)
+# Ký hiệu, dấu câu, ligature, box drawing, Hy Lạp, Cyrillic giữ của Auvyx/Lilex.
+# Chạy: make auvyx-linear  → fonts/AuvyxMonoLinear
+
+family: Auvyx Mono Linear
+postscript: AuvyxMonoLinear
+source_family: Lilex
+
+copyright: Copyright 2026 Lam Tan Loc
+designer: Lam Tan Loc
+vendor_url: ""
+
+cell_width: 600                 # giống Auvyx Mono (giữ spacing gốc 600 units)
+
+default_features: {upright: [], italic: []}
+remove_foot: {upright: []}
+
+# Các biến thể chữ/số của Lilex không khớp với chữ Geist → tắt
+drop_features:
+  upright: [cv01, cv02, cv03, cv04, cv05, cv12, cv14, zero]
+  italic: []
+
+# Bộ nghiêng như Auvyx Mono: x nghiêng = x đứng của Lilex xiên 9.5°
+italic_from_upright:
+  - x
+  - z      # z nghiêng thường, không cách điệu (Lilex có đuôi uốn)
+
+import_glyphs:
+  # Chữ cái Latin (kể cả chữ có dấu vẽ riêng) + chữ số. Chữ có dấu ghép (á, ệ, ờ...) tự đổi theo chữ gốc.
+  # Độ đậm: một bảng chung cho cả bộ (khớp độ dày nét trung bình của n o h e m u H O E với Lilex),
+  # để giữ nhịp điệu đồng đều vốn có của Geist Mono.
+  - name: Geist-upright
+    source: sources/external/geist/GeistMono-VF-1.7.2.ttf
+    styles: [upright]
+    location: {}
+    masters: {100: 42.6, 400: 355.0, 700: 712.5}
+    zones:
+      source: [-150, 0, 530, 710, 1000]          # descender, baseline, x-height, cap/ascender
+      target: [-150, 0, 516, 698, 988]
+    chars: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyzªµºÆÇØÞßæçðøþĄąďĐđĘęĝğĦħĮįıŁŊŋŒœŞşŢţŦŧŲųƏƒƠơƯưȷẞ"   # trừ l, ł (lấy từ Recursive)
+
+  # l đứng lấy từ Rec Mono Linear; chiều cao phần trên khớp với các chữ Geist (698)
+  - name: Recursive-upright-l
+    source: sources/external/recursive/Recursive_VF_1.085.ttf
+    styles: [upright]
+    location: {MONO: 1, CASL: 0, slnt: 0, CRSV: 0}
+    masters: {100: 227, 400: 373, 700: 787}
+    zones:
+      source: [-200, 0, 532, 750]
+      target: [-150, 0, 516, 698]
+    match_stroke: stem
+    reference: fonts/Lilex/variable/Lilex[wght].ttf
+    chars: "lł"
+
+  # --- bộ nghiêng: giống Auvyx Mono ---
+  - name: Recursive
+    source: sources/external/recursive/Recursive_VF_1.085.ttf   # OFL, xem OFL.txt cùng thư mục
+    styles: [italic]
+    location: {MONO: 1, CASL: 0, slnt: -9.5, CRSV: 0}          # Rec Mono Linear, nghiêng 9.5° như Lilex
+    masters: {100: 238, 400: 367, 700: 750}                    # wght Lilex → wght Recursive (<300 là ngoại suy)
+    zones:
+      source: [-200, 0, 532, 750]                              # descender, baseline, x-height, ascender
+      target: [-200, 0, 522, 740]
+    match_stroke: stem            # tự chọn wght nguồn cho từng chữ để nét chính dày bằng thân chữ Lilex (n / H)
+    reference: fonts/Lilex/variable/Lilex-Italic[wght].ttf
+    chars: "kljrvwtfy łŧţȷỵ"
+    source_names: {f: f}      # f không chân (f.mono của Rec có chân)
+
+  - name: Recursive-italic-caps
+    source: sources/external/recursive/Recursive_VF_1.085.ttf
+    styles: [italic]
+    location: {MONO: 1, CASL: 0, slnt: -9.5, CRSV: 0}
+    masters: {100: 238, 400: 367, 700: 750}
+    zones:
+      source: [-200, 0, 700, 1000]
+      target: [-200, 0, 698, 998]
+    match_stroke: stem            # tự chọn wght nguồn cho từng chữ để nét chính dày bằng thân chữ Lilex (n / H)
+    reference: fonts/Lilex/variable/Lilex-Italic[wght].ttf
+    chars: "KLJRVWTF ŁŦŢ"
+
+extra_copyright:
+  - "Upright l and italic k l j r v w t f y K L J R V W T F from Recursive: Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Upright letters and figures from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."

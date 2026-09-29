@@ -34,9 +34,9 @@ jobs:
           cache: npm
           cache-dependency-path: website/package-lock.json
       - name: Install Python dependencies
-        run: pip install fonttools brotli pyyaml uharfbuzz numpy freetype-py pillow
-      - name: Build Auvyx Mono
-        run: make auvyx
+        run: pip install fonttools brotli pyyaml uharfbuzz numpy scipy freetype-py pillow
+      - name: Build Auvyx Mono & Auvyx Mono Linear
+        run: make auvyx-all
       - name: Build website
         run: |
           cd website
@@ -46,8 +46,8 @@ jobs:
       - name: Package fonts
         run: |
           mkdir -p dist
-          cp OFL.txt fonts/AuvyxMono/
-          cd fonts && zip -qr ../dist/AuvyxMono.zip AuvyxMono
+          cp OFL.txt fonts/AuvyxMono/ && cp OFL.txt fonts/AuvyxMonoLinear/
+          cd fonts && zip -qr ../dist/AuvyxMono.zip AuvyxMono AuvyxMonoLinear
       - uses: actions/upload-artifact@v4
         with:
           name: AuvyxMono

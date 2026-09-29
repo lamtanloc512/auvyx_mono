@@ -241,6 +241,20 @@ clean: ## clean up artifacts
 auvyx: ## create Auvyx Mono from prebuilt Lilex fonts in fonts/Lilex
 	@python3 $(SCRIPTS_DIR)/auvyx.py $(RELEASE_DIR)/Lilex --output $(RELEASE_DIR)/AuvyxMono
 
+.PHONY: auvyx-linear
+auvyx-linear: ## create Auvyx Mono Linear (letters & figures from Geist Mono) in fonts/AuvyxMonoLinear
+	@python3 $(SCRIPTS_DIR)/auvyx.py $(RELEASE_DIR)/Lilex --config $(SOURCE_DIR)/auvyx_linear.yaml --output $(RELEASE_DIR)/AuvyxMonoLinear
+
+.PHONY: auvyx-all
+auvyx-all: auvyx auvyx-linear ## create both families
+
+.PHONY: auvyx-linear-install
+auvyx-linear-install: ## install Auvyx Mono Linear variable fonts (macOS)
+	@rm -rf ~/Library/Fonts/AuvyxMonoLinear
+	@mkdir -p ~/Library/Fonts/AuvyxMonoLinear
+	@cp $(RELEASE_DIR)/AuvyxMonoLinear/variable/*.ttf ~/Library/Fonts/AuvyxMonoLinear/
+	@echo "Installed Auvyx Mono Linear to ~/Library/Fonts/AuvyxMonoLinear"
+
 .PHONY: auvyx-build
 auvyx-build: ## build Lilex from sources, then create Auvyx Mono in build/AuvyxMono
 	@make build-mono

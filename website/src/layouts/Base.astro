@@ -9,7 +9,11 @@ interface Props {
 const { title = SITE.title, description = SITE.description } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? SITE.url).href;
 const ogImage = new URL(withBase("og.png"), Astro.site ?? SITE.url).href;
-const fontCss = `@font-face{font-family:"Auvyx Mono";src:url("${withBase("fonts/AuvyxMono-Variable.woff2")}") format("woff2");font-weight:100 700;font-style:normal;font-display:swap}@font-face{font-family:"Auvyx Mono";src:url("${withBase("fonts/AuvyxMono-Italic-Variable.woff2")}") format("woff2");font-weight:100 700;font-style:italic;font-display:swap}`;
+const face = (fam: string, file: string, style: string) =>
+  `@font-face{font-family:"${fam}";src:url("${withBase(`fonts/${file}`)}") format("woff2");font-weight:100 700;font-style:${style};font-display:swap}`;
+const fontCss =
+  face("Auvyx Mono", "AuvyxMono-Variable.woff2", "normal") + face("Auvyx Mono", "AuvyxMono-Italic-Variable.woff2", "italic") +
+  face("Auvyx Mono Linear", "AuvyxMonoLinear-Variable.woff2", "normal") + face("Auvyx Mono Linear", "AuvyxMonoLinear-Italic-Variable.woff2", "italic");
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -58,8 +62,8 @@ const jsonLd = {
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)" />
 
-    <link rel="preload" href={withBase("fonts/AuvyxMono-Variable.woff2")} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={withBase("fonts/AuvyxMono-Italic-Variable.woff2")} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={withBase("fonts/AuvyxMonoLinear-Variable.woff2")} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={withBase("fonts/AuvyxMonoLinear-Italic-Variable.woff2")} as="font" type="font/woff2" crossorigin />
 
     <style is:inline set:html={fontCss}></style>
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

@@ -28,6 +28,7 @@ const first = presets.Code;
           <input id="t-lh" type="range" min="1" max="2.2" step="0.05" value="1.6" />
         </label>
         <div class="toggles">
+          <button class="chip" type="button" id="t-linear" aria-pressed="true" title="Toggle Auvyx Mono Linear / Auvyx Mono">Linear</button>
           <button class="chip" type="button" id="t-italic" aria-pressed="false">Italic</button>
           <button class="chip" type="button" id="t-liga" aria-pressed="true">Ligatures</button>
         </div>
@@ -56,7 +57,7 @@ const first = presets.Code;
   const $ = (id) => document.getElementById(id);
   const area = $("t-area");
   const wght = $("t-wght"), size = $("t-size"), lh = $("t-lh");
-  const italic = $("t-italic"), liga = $("t-liga");
+  const italic = $("t-italic"), liga = $("t-liga"), linear = $("t-linear");
 
   function update() {
     const w = Number(wght.value);
@@ -65,13 +66,14 @@ const first = presets.Code;
     area.style.fontSize = size.value + "px";
     area.style.lineHeight = lh.value;
     area.style.fontStyle = italic.getAttribute("aria-pressed") === "true" ? "italic" : "normal";
+    area.style.fontFamily = linear.getAttribute("aria-pressed") === "true" ? '"Auvyx Mono Linear", var(--font)' : '"Auvyx Mono", var(--font)';
     area.style.fontFeatureSettings = liga.getAttribute("aria-pressed") === "true" ? '"calt" 1' : '"calt" 0';
     $("t-wght-out").textContent = `${w} ${w === near ? names[near] : ""}`.trim();
     $("t-size-out").textContent = size.value + "px";
     $("t-lh-out").textContent = Number(lh.value).toFixed(2).replace(/0$/, "");
   }
   [wght, size, lh].forEach((el) => el.addEventListener("input", update));
-  [italic, liga].forEach((el) =>
+  [italic, liga, linear].forEach((el) =>
     el.addEventListener("click", () => {
       el.setAttribute("aria-pressed", el.getAttribute("aria-pressed") === "true" ? "false" : "true");
       update();

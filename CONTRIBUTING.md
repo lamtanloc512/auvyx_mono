@@ -9,7 +9,7 @@ suggest an improvement. Screenshots with the exact text, size, app and OS help a
 
 ## Changes
 
-1. Install Python 3 with `fonttools pyyaml uharfbuzz numpy freetype-py` (and `brotli` for WOFF2).
+1. Install Python 3 with `fonttools pyyaml uharfbuzz numpy scipy freetype-py` (and `brotli` for WOFF2).
 2. Most Auvyx changes are declared in `sources/auvyx.yaml` — edit it and run `make auvyx`.
 3. Glyph drawing changes that belong to the base design go into `sources/Lilex/*.glyphs`
    (edit with Glyphs/Fontra, then `make configure && make auvyx-build`).

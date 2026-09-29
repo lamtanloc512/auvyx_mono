@@ -20,11 +20,19 @@ support. Available as static TTF/OTF, variable TTF and WOFF2.
 ## Features
 
 - **7 weights + variable font** — `wght` 100–700, upright and italic.
-- **True italics** — single-storey `a` and `g`, flowing `k l j r v w t f`, a straight quiet `x`.
+- **True italics, without flourishes** — single-storey `a` and `g`, the signature `i`, clean `k l j r v w t f y`, straight `x` and `z`.
 - **Ligatures** — `=> != === |> :: && <= /* */ <!--` … turn them off with `calt` if you prefer.
 - **Character variants** — slashed/plain/backslashed zero, double-storey `g`, high asterisk, curvier parentheses and more (`cv02 cv04 cv06 cv08–cv11 cv13–cv15 zero ss01–ss04`).
 - **Languages** — Latin (incl. Vietnamese), Greek and Cyrillic; box drawing and Powerline symbols.
 - **Consistent spacing** — a 600-unit cell, matching Recursive Mono Linear.
+
+### Auvyx Mono Linear
+
+A sister family whose upright uses the Latin letters and figures of [Geist Mono](https://github.com/vercel/geist-font)
+(weight-matched; `l` from Recursive), while the italic is identical to Auvyx Mono's. Symbols, ligatures and box drawing are shared.
+Built with `make auvyx-linear` → `fonts/AuvyxMonoLinear` (config: [`sources/auvyx_linear.yaml`](sources/auvyx_linear.yaml)).
+
+<p align="center"><img src="./images/linear.png" alt="Auvyx Mono vs Auvyx Mono Linear" width="100%"></p>
 
 <p align="center"><img src="./images/specimen.png" alt="Specimen: Lorem ipsum and Vietnamese text" width="100%"></p>
 
@@ -46,8 +54,9 @@ Editor setup, e.g. VS Code:
 ## Build
 
 ```sh
-make auvyx            # build fonts/AuvyxMono from the prebuilt base fonts (Python + fonttools, pyyaml, uharfbuzz, numpy, freetype-py)
+make auvyx            # build fonts/AuvyxMono from the prebuilt base fonts (Python + fonttools, pyyaml, uharfbuzz, numpy, scipy, freetype-py)
 make auvyx-install    # install the variable fonts on macOS
+make auvyx-linear     # build Auvyx Mono Linear (fonts/AuvyxMonoLinear)
 make configure && make auvyx-build   # full build from the .glyphs sources
 ```
 
