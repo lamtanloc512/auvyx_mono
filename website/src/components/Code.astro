@@ -108,7 +108,8 @@ func process(jobs <-chan Job, results chan<- Result) {
     background: transparent; color: var(--muted); cursor: pointer;
   }
   .tab[aria-selected="true"] { background: var(--bg-2); color: var(--fg); }
-  pre { margin: 0; padding: 24px; font: inherit; font-size: clamp(13px, 1.4vw, 16px); line-height: 1.7; overflow-x: auto; tab-size: 4; }
+  pre { margin: 0; padding: 24px; font-family: var(--font-mono); font-size: clamp(13px, 1.4vw, 16px); line-height: 1.7; overflow-x: auto; tab-size: 4; }
+  @media (max-width: 520px) { pre { padding: 16px; } }
   pre :global(.c) { color: var(--tok-com); font-style: italic; }
   pre :global(.k) { color: var(--tok-kw); }
   pre :global(.f) { color: var(--tok-fn); }

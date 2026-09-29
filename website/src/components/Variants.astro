@@ -75,11 +75,17 @@ const variants = [
   }
   .v:hover { border-color: var(--fg); transform: translateY(-1px); }
   .v[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-  .v-sample { font-size: 34px; line-height: 1.1; white-space: nowrap; }
+  .v-sample { font-family: var(--font-mono); font-size: 34px; line-height: 1.1; white-space: nowrap; }
   .v[aria-pressed="true"] .v-sample { color: var(--accent); }
   .v-meta { font-size: 13px; color: var(--muted); }
   .v-meta code { color: var(--fg); margin-right: 4px; }
   .v-css { margin-top: 24px; font-size: 14px; }
   .v-css code { color: var(--accent); }
   .muted { color: var(--muted); }
+  @media (max-width: 520px) {
+    .v-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .v { padding: 14px; }
+    .v-sample { font-size: clamp(19px, 5.8vw, 30px); overflow: hidden; }
+    .v-meta { font-size: 12px; }
+  }
 </style>

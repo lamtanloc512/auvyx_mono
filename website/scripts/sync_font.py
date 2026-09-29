@@ -104,14 +104,16 @@ def make_og(ttf_dir: Path) -> None:
         return pen.image(width=max(x, 1) * sc, height=1250 * sc, transform=(sc, 0, 0, sc, 0, 280 * sc), contain=False)
 
     W, H = 1200, 630
-    img = Image.new("RGB", (W, H), "#101116")
+    img = Image.new("RGB", (W, H), "#161616")
+    mark = Image.open(ROOT / "public" / "brand" / "mark-dark-1024.png").convert("RGB")
+    img.paste(mark.resize((84, 84), Image.Resampling.LANCZOS), (70, 48))
 
     def put(im, xy, color):
         img.paste(Image.new("RGB", im.size, color), xy, im.split()[-1])
 
-    put(text(ttf_dir / "AuvyxMono-Bold.ttf", "Auvyx Mono", 150), (70, 150), "#f2efe9")
-    put(text(ttf_dir / "AuvyxMono-Italic.ttf", "a monospaced typeface for code", 44), (78, 360), "#ff7a59")
-    put(text(ttf_dir / "AuvyxMono-Regular.ttf", "=> != === |> ... Tiếng Việt · Thin → Bold", 32), (80, 470), "#9a98a3")
+    put(text(ttf_dir / "AuvyxMono-Bold.ttf", "Auvyx Mono", 150), (70, 150), "#ffffff")
+    put(text(ttf_dir / "AuvyxMono-Italic.ttf", "a monospaced typeface for code", 44), (78, 360), "#c65a32")
+    put(text(ttf_dir / "AuvyxMono-Regular.ttf", "=> != === |> ... Tiếng Việt · Thin → Bold", 32), (80, 470), "#b8b8b8")
     out = ROOT / "public" / "og.png"
     img.save(out, optimize=True)
 

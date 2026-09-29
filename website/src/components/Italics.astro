@@ -31,10 +31,16 @@
   .compare { padding: 28px; }
   .row { display: grid; grid-template-columns: 90px 1fr; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .label { font-size: 13px; color: var(--muted); }
-  .glyphs { font-size: clamp(36px, 5.2vw, 64px); line-height: 1.25; letter-spacing: .02em; }
-  .snippet { margin: 22px 0 0; font: inherit; font-size: 15px; line-height: 1.7; white-space: pre-wrap; }
+  .glyphs { font-family: var(--font-mono); font-size: clamp(36px, 5.2vw, 64px); line-height: 1.25; letter-spacing: .02em; }
+  .snippet { margin: 22px 0 0; font: 15px/1.7 var(--font-mono); white-space: pre-wrap; }
   .snippet .c { color: var(--tok-com); font-style: italic; }
   .snippet .k { color: var(--tok-kw); font-style: italic; }
   .snippet .f { color: var(--tok-fn); }
   @media (max-width: 900px) { .grid { grid-template-columns: 1fr; gap: 32px; } }
+  @media (max-width: 520px) {
+    .compare { padding: 16px; }
+    .row { grid-template-columns: 1fr; gap: 4px; }
+    .glyphs { font-size: clamp(32px, 9vw, 48px); }
+    .snippet { overflow-x: auto; }
+  }
 </style>

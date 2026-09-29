@@ -29,6 +29,7 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
             </button>
           ))}
         </div>
+        <p class="grid-hint">Scroll inside the grid to see more characters.</p>
         {data.groups.map((g, i) => (
           <div class="grid" data-panel={i} hidden={i !== 0} role="tabpanel">
             {g.chars.map(([cp, name]) => (
@@ -83,7 +84,7 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   .explorer { display: grid; grid-template-columns: 320px 1fr; gap: 24px; margin-top: 40px; align-items: start; }
   .inspector { position: sticky; top: 88px; padding: 24px; display: grid; gap: 18px; }
   .big {
-    display: grid; place-items: center; height: 240px; font-size: 180px; line-height: 1; overflow: hidden;
+    display: grid; place-items: center; height: 240px; font-family: var(--font-mono); font-size: 180px; line-height: 1; overflow: hidden;
     background:
       linear-gradient(var(--line), var(--line)) 0 62% / 100% 1px no-repeat,
       linear-gradient(var(--line), var(--line)) 0 30% / 100% 1px no-repeat;
@@ -99,18 +100,27 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   .weights label { display: flex; align-items: center; gap: 10px; flex: 1; }
   .group-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
   .count { opacity: .6; margin-left: 4px; }
+  .grid-hint { display: none; color: var(--muted); font-size: 13px; margin: 0 0 12px; }
   .grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
     border-top: 1px solid var(--line); border-left: 1px solid var(--line);
   }
   .cell {
-    aspect-ratio: 1; font: inherit; font-size: 24px; color: inherit; background: transparent; cursor: pointer;
+    aspect-ratio: 1; font: 24px/1 var(--font-mono); color: inherit; background: transparent; cursor: pointer;
     border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
   }
   .cell:hover, .cell:focus-visible { background: var(--fg); color: var(--bg); outline: none; border-radius: 0; }
   @media (max-width: 860px) {
-    .explorer { grid-template-columns: 1fr; }
-    .inspector { position: static; }
-    .big { height: 180px; font-size: 130px; }
+    .explorer { grid-template-columns: 1fr; gap: 16px; }
+    .inspector { position: static; grid-template-columns: 110px minmax(0, 1fr); align-items: center; padding: 16px; gap: 12px 16px; }
+    .big { grid-row: span 2; height: 110px; font-size: 80px; }
+    .weights { grid-column: 2; }
+    .grid-hint { display: block; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); max-height: 520px; overflow-y: auto; overscroll-behavior: contain; }
+    .cell { font-size: 21px; }
+  }
+  @media (max-width: 380px) {
+    .inspector { grid-template-columns: 88px minmax(0, 1fr); }
+    .big { height: 88px; font-size: 64px; }
   }
 </style>

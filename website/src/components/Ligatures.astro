@@ -46,8 +46,8 @@ const ligs = [
     display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;
   }
   .lig-grid li { display: grid; place-items: center; gap: 6px; padding: 26px 10px 14px; }
-  .lig { font-size: 40px; line-height: 1; font-feature-settings: "calt" 1; transition: color .2s; }
+  .lig { font-family: var(--font-mono); font-size: 40px; line-height: 1; font-feature-settings: "calt" 1; transition: color .2s; }
   .lig-grid li:hover .lig { color: var(--accent); }
-  .raw { font-size: 12px; color: var(--muted); font-feature-settings: "calt" 0; }
+  .raw { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-feature-settings: "calt" 0; }
   .off .lig { font-feature-settings: "calt" 0; }
 </style>

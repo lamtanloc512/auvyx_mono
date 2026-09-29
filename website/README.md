@@ -28,6 +28,10 @@ Vercel: import repo, chọn Root Directory là `website`, dùng framework preset
 
 GitHub Pages: workflow `.github/workflows/ci.yaml` build font và trang khi push lên `main`, rồi deploy tại https://lamtanloc512.github.io/auvyx_mono/. Repo cần bật Pages và gói GitHub phải hỗ trợ Pages cho repo đó.
 
+## Nhận diện thương hiệu
+
+Giao diện dùng màu, Dual Module mark và favicon từ brand kit v0.3 của `auvyx_llc` (`design_assets/`). Các asset đã được copy vào `public/brand/` và `public/` nên Vercel không cần truy cập repo kia. Tiêu đề dùng Recursive Mono Linear, UI dùng Geist; các mẫu chữ, code và type tester dùng Auvyx Mono. `scripts/sync_font.py` tạo lại ảnh `public/og.png` theo bảng màu brand.
+
 ## Cấu trúc
 
 ```

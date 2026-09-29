@@ -50,10 +50,16 @@ const jsonLd = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <link rel="icon" href={withBase("favicon.svg")} type="image/svg+xml" />
+    <link rel="icon" href={withBase("brand/auvyx-mark.svg")} type="image/svg+xml" />
+    <link rel="icon" href={withBase("favicon.ico")} sizes="any" />
+    <link rel="icon" href={withBase("favicon-32.png")} type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href={withBase("apple-touch-icon.png")} />
     <link rel="sitemap" href={withBase("sitemap-index.xml")} />
-    <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0e0f13" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#161616" media="(prefers-color-scheme: dark)" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Recursive:CASL,CRSV,MONO,slnt,wght@0,0,1,0,400..1000&display=swap" rel="stylesheet" />
 
     <link rel="preload" href={withBase("fonts/AuvyxMono-Variable.woff2")} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={withBase("fonts/AuvyxMono-Italic-Variable.woff2")} as="font" type="font/woff2" crossorigin />

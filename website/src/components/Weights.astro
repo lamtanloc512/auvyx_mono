@@ -31,10 +31,14 @@ const weights = [
   }
   .meta { font-size: 13px; font-weight: 400; color: var(--muted); }
   .meta b { color: var(--fg); font-weight: 600; margin-right: 6px; }
-  .sample { overflow: hidden; text-overflow: ellipsis; }
+  .sample { font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; }
   .it { font-style: italic; color: var(--muted); }
   @media (max-width: 860px) {
     .ladder li { grid-template-columns: 110px 1fr; }
     .it { display: none; }
+  }
+  @media (max-width: 520px) {
+    .ladder li { grid-template-columns: 1fr; gap: 4px; white-space: normal; }
+    .sample { white-space: nowrap; }
   }
 </style>

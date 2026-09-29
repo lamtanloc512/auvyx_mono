@@ -34,13 +34,14 @@ const first = presets.Code;
       </div>
       <div
         id="t-area"
-        class="area"
+        class="area is-code"
         contenteditable="plaintext-only"
         spellcheck="false"
         role="textbox"
         aria-multiline="true"
         aria-label="Type tester text"
       >{first}</div>
+      <p class="scroll-hint">Swipe the code sample sideways to read the full line.</p>
       <div class="presets" role="group" aria-label="Sample text">
         {Object.keys(presets).map((k, i) => (
           <button class="chip" type="button" data-preset={k} aria-pressed={i === 0 ? "true" : "false"}>{k}</button>
@@ -81,6 +82,7 @@ const first = presets.Code;
       document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", "false"));
       btn.setAttribute("aria-pressed", "true");
       area.textContent = presets[btn.dataset.preset];
+      area.classList.toggle("is-code", btn.dataset.preset === "Code");
     })
   );
   update();
@@ -98,13 +100,22 @@ const first = presets.Code;
   .toggles { display: flex; gap: 8px; }
   .area {
     min-height: 280px; padding: 28px 24px; outline: none;
-    white-space: pre-wrap; overflow-wrap: anywhere;
+    font-family: var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .area.is-code {
+    white-space: pre; overflow-x: auto; overflow-wrap: normal;
     font-size: 28px; line-height: 1.6; tab-size: 2;
   }
+  .scroll-hint { display: none; margin: 0; color: var(--muted); font-size: 12px; }
   .presets { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--line); }
   @media (max-width: 860px) {
     .controls { grid-template-columns: 1fr 1fr; }
     .toggles { grid-column: 1 / -1; }
   }
-  @media (max-width: 520px) { .controls { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) {
+    .controls { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; }
+    .area { min-height: 220px; padding: 20px 16px; }
+    .area.is-code + .scroll-hint { display: block; padding: 0 16px 12px; }
+    .presets { padding: 16px; }
+  }
 </style>
