@@ -10,6 +10,9 @@ copyright: Copyright 2026 Ethan Lam
 designer: Ethan Lam
 vendor_url: ""              # để trống = xoá URL vendor của Lilex
 
+# Độ rộng ô monospace (Lilex: 600). Nhỏ hơn = chữ khít hơn.
+cell_width: 590
+
 # Các biến thể được "gắn cứng" làm mặc định.
 # Bật lại feature đó trong editor sẽ trả về glyph gốc của Lilex.
 # Xem danh sách trong sources/opentype_features/cv*.fea, ss*.fea, zero.fea

@@ -450,6 +450,135 @@ def rename(font: ttLib.TTFont, cfg: dict) -> None:
             top.Notice = f"{cfg['copyright']}. {top.Notice}"
 
 
+# ---------------------------------------------------------------------------
+# Khoảng cách ký tự (độ rộng ô monospace)
+# ---------------------------------------------------------------------------
+
+_BOX_RANGES = ((0x2500, 0x259F), (0xE0A0, 0xE0FF), (0x1FB00, 0x1FBFF))
+
+
+def _scale_type(font: ttLib.TTFont, name: str, rev: dict) -> bool:
+    """Glyph trải qua nhiều ô / nối mép ô (ligature, box drawing): co theo tỷ lệ."""
+    if any(t in name for t in (".liga", ".seq", ".spacer")):
+        return True
+    cp = rev.get(name)
+    return cp is not None and any(a <= cp <= b for a, b in _BOX_RANGES)
+
+
+def set_cell_width(font: ttLib.TTFont, new: int) -> int:
+    hmtx = font["hmtx"]
+    old = max(w for w, _ in hmtx.metrics.values())
+    if new == old:
+        return 0
+    k = new / old
+    shift = (old - new) / 2
+    rev: dict = {}
+    for cp, n in font.getBestCmap().items():
+        rev.setdefault(n, cp)
+    names = [n for n in font.getGlyphOrder() if hmtx[n][0] == old]
+    scaled = {n for n in names if _scale_type(font, n, rev)}
+
+    def fx(n: str, x: float) -> float:
+        return x * k if n in scaled else x - shift
+
+    if "glyf" in font:
+        glyf = font["glyf"]
+        gvar = font["gvar"].variations if "gvar" in font else {}
+        for n in names:
+            g = glyf[n]
+            if g.isComposite():
+                if n in scaled:
+                    for c in g.components:
+                        c.x = round(c.x * k)
+                    for v in gvar.get(n, []):
+                        v.coordinates = [
+                            (round(p[0] * k), p[1]) if p is not None and i < len(g.components) else p
+                            for i, p in enumerate(v.coordinates)
+                        ]
+            elif g.numberOfContours > 0:
+                for i, (x, y) in enumerate(g.coordinates):
+                    g.coordinates[i] = (round(fx(n, x)), y)
+                if n in scaled:
+                    npts = len(g.coordinates)
+                    for v in gvar.get(n, []):
+                        v.coordinates = [
+                            (round(p[0] * k), p[1]) if p is not None and i < npts else p
+                            for i, p in enumerate(v.coordinates)
+                        ]
+        for n in font.getGlyphOrder():
+            g = glyf[n]
+            w = hmtx[n][0]
+            if g.numberOfContours != 0:
+                g.recalcBounds(glyf)
+            hmtx[n] = (new if w == old else w, g.xMin if g.numberOfContours != 0 else 0)
+    else:
+        cff = font["CFF "].cff
+        top = cff.topDictIndex[0]
+        gs = font.getGlyphSet()
+        drawn = {}
+        for n in names:
+            rec = RecordingPen()
+            gs[n].draw(rec)
+            drawn[n] = rec
+        for n, rec in drawn.items():
+            m = (k, 0, 0, 1, 0, 0) if n in scaled else (1, 0, 0, 1, -shift, 0)
+            pen = T2CharStringPen(new, None)
+            rec.replay(TransformPen(pen, m))
+            top.CharStrings[n] = pen.getCharString(private=top.Private, globalSubrs=cff.GlobalSubrs)
+            bp = BoundsPen(None)
+            rec.replay(TransformPen(bp, m))
+            hmtx[n] = (new, round(bp.bounds[0]) if bp.bounds else 0)
+
+    # GPOS: điểm neo dấu của glyph gốc dịch theo glyph
+    if "GPOS" in font:
+        for lk in font["GPOS"].table.LookupList.Lookup:
+            for st in lk.SubTable:
+                if lk.LookupType == 9:
+                    st = st.ExtSubTable
+                if getattr(st, "LookupType", lk.LookupType) != 4 or not hasattr(st, "BaseArray"):
+                    continue
+                for gname, rec in zip(st.BaseCoverage.glyphs, st.BaseArray.BaseRecord):
+                    if hmtx[gname][0] != new:
+                        continue
+                    for a in rec.BaseAnchor:
+                        if a is not None:
+                            a.XCoordinate = round(fx(gname, a.XCoordinate))
+    # glyph rỗng có độ rộng lệch (vd: U+2028/2029 của Lilex) → đưa về đúng ô
+    order = font.getGlyphOrder()
+    for n, (w, _) in list(hmtx.metrics.items()):
+        empty_glyf = "glyf" in font and font["glyf"][n].numberOfContours == 0
+        if w in (0, new) and not (empty_glyf and "gvar" in font and n in font["gvar"].variations):
+            continue
+        if "glyf" in font:
+            if font["glyf"][n].numberOfContours != 0:
+                continue
+        else:
+            bp = BoundsPen(None)
+            font.getGlyphSet()[n].draw(bp)
+            if bp.bounds is not None:
+                continue
+            top = font["CFF "].cff.topDictIndex[0]
+            top.CharStrings[n] = T2CharStringPen(new, None).getCharString(
+                private=top.Private, globalSubrs=font["CFF "].cff.GlobalSubrs
+            )
+        if w != 0:
+            hmtx[n] = (new, 0)
+        if "gvar" in font:
+            font["gvar"].variations.pop(n, None)
+        if "HVAR" in font:
+            hv = font["HVAR"].table
+            if hv.AdvWidthMap is None:
+                outer, inner = 0, order.index(n)
+            else:
+                idx = hv.AdvWidthMap.mapping[n]
+                outer, inner = idx >> 16, idx & 0xFFFF
+            vd = hv.VarStore.VarData[outer]
+            if inner < len(vd.Item):
+                vd.Item[inner] = [0] * len(vd.Item[inner])
+    font["OS/2"].xAvgCharWidth = new
+    return len(names)
+
+
 def transform(font: ttLib.TTFont, item: Path, cfg: dict) -> tuple[set, list]:
     """Áp mọi chỉnh sửa glyph lên font. Trả về (tên glyph đã đổi, ghi chú)."""
     italic = is_italic(font)
@@ -486,6 +615,11 @@ def transform(font: ttLib.TTFont, item: Path, cfg: dict) -> tuple[set, list]:
             changed.add(g)
             notes.append(f"{g}:no-foot")
     return changed, notes
+
+
+def finalize(font: ttLib.TTFont, cfg: dict, notes: list) -> None:
+    if cfg.get("cell_width"):
+        notes.append(f"width→{cfg['cell_width']}:{set_cell_width(font, int(cfg['cell_width']))}")
 
 
 def _dependents(glyf, changed: set) -> set:
@@ -544,6 +678,7 @@ def process(source_dir: Path, target_dir: Path, cfg: dict) -> None:
             ttf = ttLib.TTFont(str(sibling))
             transform(ttf, sibling, cfg)
             notes.append(f"cff-accents:{sync_cff_from_ttf(font, ttf, changed)}")
+        finalize(font, cfg, notes)
         rename(font, cfg)
         font.save(str(dest))
         print(f"  {rel} → {dest.relative_to(target_dir)}  [{' '.join(notes)}]")

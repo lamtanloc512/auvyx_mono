@@ -5,6 +5,7 @@ Auvyx Mono là bản fork của [Lilex](https://github.com/mishamyrt/Lilex) (d�
 **Khác biệt so với Lilex**
 
 - Tên họ font: `Auvyx Mono` (file `AuvyxMono-*.ttf`)
+- Khoảng cách ký tự khít hơn: ô monospace 590 thay vì 600 (`cell_width` trong `sources/auvyx.yaml`).
 - Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định cho bộ đứng. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex. Bộ nghiêng giữ g một tầng gốc.
 - Chữ `x` nghiêng dùng x thẳng (x đứng xiên 9.5°) thay cho x uốn lượn của Lilex.
 - Bộ đứng: `a f j t s w` (và ą ş ţ ŧ ȷ) lấy từ Recursive Mono Linear, `f` dùng bản không chân; `o` (và ơ ø) lấy từ [Geist Mono](https://github.com/vercel/geist-font) (OFL). Nguồn: `sources/external/`.
