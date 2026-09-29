@@ -1,0 +1,110 @@
+---
+const presets = {
+  Code: `function fibonacci(n: number): number {\n  if (n <= 1) return n;\n  return fibonacci(n - 1) + fibonacci(n - 2);\n}\n\nconst ok = result !== null && items.length >= 3;`,
+  Pangram: "The quick brown fox jumps over the lazy dog. Sphinx of black quartz, judge my vow! 0123456789",
+  "Tiếng Việt": "Chữ đẹp là nết người. Một đoạn mã gọn gàng, một dòng chữ rõ ràng — ai đọc cũng thấy nhẹ lòng. Tiếng Việt có đủ dấu: sắc, huyền, hỏi, ngã, nặng.",
+  "Ελληνικά · Кириллица": "Ξεσκεπάζω την ψυχοφθόρα βδελυγμία. Съешь же ещё этих мягких французских булок, да выпей чаю.",
+};
+const first = presets.Code;
+---
+<section id="tester" class="tester">
+  <div class="wrap">
+    <p class="eyebrow">Type tester</p>
+    <h2>Take it for a spin.</h2>
+    <p class="lead">Type anything below. Drag the weight axis anywhere from 100 to 700 — the variable font has every step in between.</p>
+
+    <div class="panel card">
+      <div class="controls">
+        <label class="ctl">
+          <span>Weight <output id="t-wght-out">400 Regular</output></span>
+          <input id="t-wght" type="range" min="100" max="700" step="1" value="400" />
+        </label>
+        <label class="ctl">
+          <span>Size <output id="t-size-out">28px</output></span>
+          <input id="t-size" type="range" min="12" max="160" step="1" value="28" />
+        </label>
+        <label class="ctl">
+          <span>Line height <output id="t-lh-out">1.6</output></span>
+          <input id="t-lh" type="range" min="1" max="2.2" step="0.05" value="1.6" />
+        </label>
+        <div class="toggles">
+          <button class="chip" type="button" id="t-italic" aria-pressed="false">Italic</button>
+          <button class="chip" type="button" id="t-liga" aria-pressed="true">Ligatures</button>
+        </div>
+      </div>
+      <div
+        id="t-area"
+        class="area"
+        contenteditable="plaintext-only"
+        spellcheck="false"
+        role="textbox"
+        aria-multiline="true"
+        aria-label="Type tester text"
+      >{first}</div>
+      <div class="presets" role="group" aria-label="Sample text">
+        {Object.keys(presets).map((k, i) => (
+          <button class="chip" type="button" data-preset={k} aria-pressed={i === 0 ? "true" : "false"}>{k}</button>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script define:vars={{ presets }}>
+  const names = { 100: "Thin", 200: "ExtraLight", 300: "Light", 400: "Regular", 500: "Medium", 600: "SemiBold", 700: "Bold" };
+  const $ = (id) => document.getElementById(id);
+  const area = $("t-area");
+  const wght = $("t-wght"), size = $("t-size"), lh = $("t-lh");
+  const italic = $("t-italic"), liga = $("t-liga");
+
+  function update() {
+    const w = Number(wght.value);
+    const near = Math.round(w / 100) * 100;
+    area.style.fontWeight = w;
+    area.style.fontSize = size.value + "px";
+    area.style.lineHeight = lh.value;
+    area.style.fontStyle = italic.getAttribute("aria-pressed") === "true" ? "italic" : "normal";
+    area.style.fontFeatureSettings = liga.getAttribute("aria-pressed") === "true" ? '"calt" 1' : '"calt" 0';
+    $("t-wght-out").textContent = `${w} ${w === near ? names[near] : ""}`.trim();
+    $("t-size-out").textContent = size.value + "px";
+    $("t-lh-out").textContent = Number(lh.value).toFixed(2).replace(/0$/, "");
+  }
+  [wght, size, lh].forEach((el) => el.addEventListener("input", update));
+  [italic, liga].forEach((el) =>
+    el.addEventListener("click", () => {
+      el.setAttribute("aria-pressed", el.getAttribute("aria-pressed") === "true" ? "false" : "true");
+      update();
+    })
+  );
+  document.querySelectorAll("[data-preset]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+      btn.setAttribute("aria-pressed", "true");
+      area.textContent = presets[btn.dataset.preset];
+    })
+  );
+  update();
+</script>
+
+<style>
+  .panel { margin-top: 40px; overflow: hidden; }
+  .controls {
+    display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 22px 28px; align-items: end;
+    padding: 20px 24px; border-bottom: 1px solid var(--line);
+  }
+  .ctl { display: grid; gap: 8px; font-size: 13px; color: var(--muted); }
+  .ctl span { display: flex; justify-content: space-between; gap: 12px; }
+  .ctl output { color: var(--fg); }
+  .toggles { display: flex; gap: 8px; }
+  .area {
+    min-height: 280px; padding: 28px 24px; outline: none;
+    white-space: pre-wrap; overflow-wrap: anywhere;
+    font-size: 28px; line-height: 1.6; tab-size: 2;
+  }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--line); }
+  @media (max-width: 860px) {
+    .controls { grid-template-columns: 1fr 1fr; }
+    .toggles { grid-column: 1 / -1; }
+  }
+  @media (max-width: 520px) { .controls { grid-template-columns: 1fr; } }
+</style>

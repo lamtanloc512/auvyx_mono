@@ -1,0 +1,52 @@
+---
+import { SITE } from "../config";
+const credits = [
+  ["Lilex", "Mikhael Khrustik", "https://github.com/mishamyrt/Lilex", "The foundation: skeleton, ligatures, symbols and most glyphs."],
+  ["IBM Plex Mono", "IBM, Mike Abbink & Bold Monday", "https://github.com/IBM/plex", "The typeface Lilex itself grew from."],
+  ["Recursive", "Arrow Type", "https://github.com/arrowtype/recursive", "Upright a f j t s w and italic f j k l r t v w, from Rec Mono Linear."],
+  ["Geist Mono", "Vercel", "https://github.com/vercel/geist-font", "The upright o, ơ and ø."],
+];
+---
+<section class="credits">
+  <div class="wrap grid">
+    <div>
+      <p class="eyebrow">Open source</p>
+      <h2>Standing on the shoulders of giants.</h2>
+      <p class="lead">
+        Auvyx Mono is a remix of excellent open-source typefaces, released
+        under the <a href="https://openfontlicense.org">SIL Open Font License 1.1</a>.
+        Use it anywhere — personal or commercial — and share your changes under
+        the same license.
+      </p>
+    </div>
+    <ul class="list">
+      {credits.map(([name, by, url, what]) => (
+        <li>
+          <a href={url} rel="noopener"><b>{name}</b></a>
+          <span class="by">by {by}</span>
+          <p>{what}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="wrap foot">
+    <span>© 2026 {SITE.author}. Font licensed under OFL 1.1.</span>
+    <span class="muted">Set in Auvyx Mono, of course.</span>
+  </div>
+</footer>
+
+<style>
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .list li { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .list a { text-decoration: none; font-size: 18px; }
+  .by { color: var(--muted); font-size: 13px; margin-left: 10px; }
+  .list p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+  .footer { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 13px; }
+  .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .muted { color: var(--muted); }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; gap: 32px; } }
+</style>

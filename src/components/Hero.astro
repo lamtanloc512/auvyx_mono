@@ -1,0 +1,87 @@
+---
+import { SITE } from "../config";
+import glyphs from "../data/glyphs.json";
+const title = "Auvyx Mono".split("");
+const stats = [
+  ["7", "weights, Thin to Bold"],
+  ["2", "styles, upright & italic"],
+  [glyphs.charCount.toLocaleString("en-US"), "characters"],
+  ["OFL", "free & open source"],
+];
+---
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">A monospaced typeface for code</p>
+    <h1 class="hero-title" aria-label="Auvyx Mono">
+      {title.map((ch, i) => (
+        <span aria-hidden="true" style={`--i:${i}`}>{ch === " " ? " " : ch}</span>
+      ))}
+    </h1>
+    <p class="hero-lead">
+      Calm, legible, and a little bit warm. Auvyx Mono pairs the sturdy
+      skeleton of <a href="https://github.com/mishamyrt/Lilex">Lilex</a> with
+      open, friendly letterforms, true italics and ligatures that stay out of
+      your way. Built for long days in the editor.
+    </p>
+    <div class="hero-actions">
+      <a class="btn" href={SITE.download} download>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0-4.5-4.5M12 15l4.5-4.5M5 20h14"/></svg>
+        Download free
+      </a>
+      <a class="btn ghost" href="#tester">Try it in your browser</a>
+    </div>
+
+    <pre class="hero-code" aria-label="Code sample"><code><span class="c">// ligatures that read naturally</span>
+<span class="k">const</span> <span class="f">greet</span> = (name) =&gt; name !== <span class="s">""</span> ?? <span class="s">"hello"</span>;
+<span class="k">if</span> (x &gt;= <span class="n">0</span> &amp;&amp; y &lt;= <span class="n">1</span>) data |&gt; <span class="f">render</span>;</code></pre>
+
+    <dl class="stats">
+      {stats.map(([n, label]) => (
+        <div>
+          <dt>{n}</dt>
+          <dd>{label}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .hero { padding-top: clamp(56px, 9vw, 110px); }
+  .hero-title {
+    font-size: clamp(56px, 13.5vw, 184px);
+    line-height: .95; letter-spacing: -0.02em; font-weight: 700;
+    margin: 0 0 28px; white-space: nowrap;
+  }
+  .hero-title span {
+    display: inline-block;
+    animation: breathe 3.6s ease-in-out infinite;
+    animation-delay: calc(var(--i) * -0.18s);
+  }
+  @keyframes breathe {
+    0%, 100% { font-weight: 700; }
+    50% { font-weight: 100; }
+  }
+  .hero-lead { font-size: clamp(16px, 1.7vw, 20px); color: var(--muted); max-width: 58ch; margin: 0; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 44px; }
+  .hero-code {
+    margin: 0; padding: 22px 24px; border-radius: var(--radius);
+    background: var(--card); border: 1px solid var(--line);
+    font: inherit; font-size: clamp(13px, 1.5vw, 17px); line-height: 1.75;
+    overflow-x: auto;
+  }
+  .hero-code .c { color: var(--tok-com); font-style: italic; }
+  .hero-code .k { color: var(--tok-kw); }
+  .hero-code .f { color: var(--tok-fn); }
+  .hero-code .s { color: var(--tok-str); }
+  .hero-code .n { color: var(--tok-num); }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    margin: 44px 0 0; background: var(--line); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .stats div { background: var(--bg); padding: 20px 22px; }
+  .stats dt { font-size: clamp(26px, 3.4vw, 40px); font-weight: 700; line-height: 1; }
+  .stats dd { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+</style>

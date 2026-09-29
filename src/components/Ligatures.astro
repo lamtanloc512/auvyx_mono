@@ -1,0 +1,53 @@
+---
+const ligs = [
+  "->", "=>", "<=>", "<->", "-->", "!=", "!==", "==", "===", ">=", "<=", "=/=",
+  "|>", "<|", "::", ":::", "::=", "...", "&&", "||", "??", "?.", "++", "--",
+  "/*", "*/", "//", "<!--", "</", "/>", "~>", "<~", "###", "#{", "[|", "0xFF",
+];
+---
+<section class="ligatures">
+  <div class="wrap">
+    <p class="eyebrow">Ligatures <code>calt</code></p>
+    <h2>Symbols that read like a sentence.</h2>
+    <p class="lead">
+      Common operators are gently combined so your eye parses them as one
+      idea. They're just a rendering feature — the underlying code stays
+      plain ASCII. Don't like them? Turn off <code>calt</code> in your editor.
+    </p>
+    <div class="lig-toolbar">
+      <button class="chip" type="button" id="lig-toggle" aria-pressed="true">Ligatures on</button>
+    </div>
+    <ul class="lig-grid" id="lig-grid">
+      {ligs.map((l) => (
+        <li class="card">
+          <span class="lig">{l}</span>
+          <span class="raw">{l}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<script>
+  const btn = document.getElementById("lig-toggle")!;
+  const grid = document.getElementById("lig-grid")!;
+  btn.addEventListener("click", () => {
+    const on = btn.getAttribute("aria-pressed") !== "true";
+    btn.setAttribute("aria-pressed", String(on));
+    btn.textContent = on ? "Ligatures on" : "Ligatures off";
+    grid.classList.toggle("off", !on);
+  });
+</script>
+
+<style>
+  .lig-toolbar { margin: 36px 0 18px; }
+  .lig-grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;
+  }
+  .lig-grid li { display: grid; place-items: center; gap: 6px; padding: 26px 10px 14px; }
+  .lig { font-size: 40px; line-height: 1; font-feature-settings: "calt" 1; transition: color .2s; }
+  .lig-grid li:hover .lig { color: var(--accent); }
+  .raw { font-size: 12px; color: var(--muted); font-feature-settings: "calt" 0; }
+  .off .lig { font-feature-settings: "calt" 0; }
+</style>

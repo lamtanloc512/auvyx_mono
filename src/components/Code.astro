@@ -1,0 +1,118 @@
+---
+import { highlight } from "../lib/highlight";
+
+const samples = [
+  {
+    id: "ts", label: "TypeScript",
+    code: `// Fetch a user and cache the result
+export async function getUser(id: string): Promise<User | null> {
+  const cached = cache.get(id);
+  if (cached !== undefined) return cached;
+
+  const res = await fetch(\`/api/users/\${id}\`);
+  if (!res.ok) throw new Error("Request failed: " + res.status);
+
+  const user = (await res.json()) as User;
+  cache.set(id, user);
+  return user ?? null;
+}`,
+  },
+  {
+    id: "py", label: "Python",
+    code: `# Count words, ignoring case and punctuation
+from collections import Counter
+import re
+
+def top_words(text: str, n: int = 10) -> list[tuple[str, int]]:
+    words = re.findall(r"[\\w']+", text.lower())
+    counts = Counter(w for w in words if len(w) >= 3)
+    return counts.most_common(n)
+
+if __name__ == "__main__":
+    print(top_words(open("book.txt").read()))`,
+  },
+  {
+    id: "rs", label: "Rust",
+    code: `// A tiny state machine
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Light { Red, Yellow, Green }
+
+impl Light {
+    fn next(self) -> Light {
+        match self {
+            Light::Red => Light::Green,
+            Light::Green => Light::Yellow,
+            Light::Yellow => Light::Red,
+        }
+    }
+}
+
+fn main() {
+    let mut light = Light::Red;
+    for _ in 0..4 { light = light.next(); }
+    println!("{:?}", light);
+}`,
+  },
+  {
+    id: "go", label: "Go",
+    code: `// Fan out work to a pool of goroutines
+func process(jobs <-chan Job, results chan<- Result) {
+	for job := range jobs {
+		res, err := job.Run()
+		if err != nil {
+			log.Printf("job %d failed: %v", job.ID, err)
+			continue
+		}
+		results <- res
+	}
+}`,
+  },
+] as const;
+---
+<section class="code">
+  <div class="wrap">
+    <p class="eyebrow">In the editor</p>
+    <h2>Made for long sessions.</h2>
+    <p class="lead">Tuned spacing, generous counters and clear punctuation keep dense code readable at small sizes — in any language.</p>
+
+    <div class="editor card">
+      <div class="tabs" role="tablist" aria-label="Language">
+        {samples.map((s, i) => (
+          <button role="tab" type="button" class="tab" id={`tab-${s.id}`} aria-controls={`pane-${s.id}`} aria-selected={i === 0 ? "true" : "false"}>{s.label}</button>
+        ))}
+      </div>
+      {samples.map((s, i) => (
+        <pre role="tabpanel" id={`pane-${s.id}`} aria-labelledby={`tab-${s.id}`} hidden={i !== 0}><code set:html={highlight(s.code, s.id)} /></pre>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>(".editor .tab")];
+  tabs.forEach((t) =>
+    t.addEventListener("click", () => {
+      tabs.forEach((x) => {
+        x.setAttribute("aria-selected", String(x === t));
+        document.getElementById(x.getAttribute("aria-controls")!)!.hidden = x !== t;
+      });
+    })
+  );
+</script>
+
+<style>
+  .editor { margin-top: 40px; overflow: hidden; }
+  .tabs { display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tab {
+    font: inherit; font-size: 13px; padding: 7px 14px; border-radius: 8px; border: 0;
+    background: transparent; color: var(--muted); cursor: pointer;
+  }
+  .tab[aria-selected="true"] { background: var(--bg-2); color: var(--fg); }
+  pre { margin: 0; padding: 24px; font: inherit; font-size: clamp(13px, 1.4vw, 16px); line-height: 1.7; overflow-x: auto; tab-size: 4; }
+  pre :global(.c) { color: var(--tok-com); font-style: italic; }
+  pre :global(.k) { color: var(--tok-kw); }
+  pre :global(.f) { color: var(--tok-fn); }
+  pre :global(.s) { color: var(--tok-str); }
+  pre :global(.n) { color: var(--tok-num); }
+  pre :global(.t) { color: var(--tok-type); }
+</style>

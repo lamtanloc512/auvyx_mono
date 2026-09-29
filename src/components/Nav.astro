@@ -1,0 +1,73 @@
+---
+import { SITE } from "../config";
+const links = [
+  ["Try it", "#tester"],
+  ["Features", "#features"],
+  ["Glyphs", "#glyphs"],
+  ["Install", "#install"],
+];
+---
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="/" aria-label="Auvyx Mono home">
+      <span class="logo-mark" aria-hidden="true">Au</span>
+      <span>Auvyx Mono</span>
+    </a>
+    <nav aria-label="Main">
+      <ul>
+        {links.map(([label, href]) => <li><a href={href}>{label}</a></li>)}
+      </ul>
+    </nav>
+    <div class="nav-actions">
+      <button class="theme-toggle" type="button" aria-label="Toggle dark mode" title="Toggle dark mode">
+        <svg class="sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></g></svg>
+        <svg class="moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1Z"/></svg>
+      </button>
+      <a class="btn nav-cta" href={SITE.download} download>Download</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: saturate(1.4) blur(12px);
+    -webkit-backdrop-filter: saturate(1.4) blur(12px);
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
+  .logo:hover { color: var(--fg); }
+  .logo-mark {
+    display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px;
+    background: var(--fg); color: var(--bg); font-size: 14px; font-weight: 700;
+  }
+  nav { margin-left: auto; }
+  nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a:hover { color: var(--fg); }
+  .nav-actions { display: flex; align-items: center; gap: 10px; }
+  .theme-toggle {
+    display: grid; place-items: center; width: 38px; height: 38px; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer;
+  }
+  .theme-toggle:hover { border-color: var(--fg); }
+  :global([data-theme="dark"]) .sun { display: none; }
+  :global([data-theme="light"]) .moon { display: none; }
+  .nav-cta { padding: 9px 16px; font-size: 14px; }
+  @media (max-width: 720px) {
+    nav { display: none; }
+    .nav-actions { margin-left: auto; }
+  }
+</style>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>(".theme-toggle");
+  btn?.addEventListener("click", () => {
+    const root = document.documentElement;
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch {}
+  });
+</script>
