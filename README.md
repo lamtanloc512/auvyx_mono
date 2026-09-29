@@ -47,7 +47,7 @@ Mã nguồn trang web: MIT. Font: SIL Open Font License 1.1.
 
 ## Video giới thiệu
 
-`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, 60 giây, nhạc "In the Remains of the Day" (Ethereal 88, CC BY 4.0, 140 BPM, file trong `video/music/`). Khi đăng video phải ghi công theo `video/DESCRIPTION.md`. Mọi cảnh đặt theo ô nhịp của bài (`bar()` trong `intro.py`): beat vào ở ô 12 là lúc montage bắt đầu, nhịp cắt nhanh dần (`MONTAGE_1`, `MONTAGE_2`) và giữ nhanh tới ô 28; ô 28–29 là "hậu cao trào": phách cuối được kéo chậm như slow-motion (hạ tốc độ, hạ cao độ, vang, nghẹt dần) trong khi chữ "Aa" cuối cùng chậm lại, mờ và tan vào bóng tối; từ ô 29 là đoạn hạ màn piano, mỗi chữ của màn kết hiện chậm theo từng phách. Thêm `--no-music` để xuất bản không nhạc.
+`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, 60 giây, nhạc "In the Remains of the Day" (Ethereal 88, CC BY 4.0, 140 BPM, file trong `video/music/`). Khi đăng video phải ghi công theo `video/DESCRIPTION.md`. Nhạc được dựng trước bằng `video/music.py` (ghép đoạn, **ngân nốt dừng** ở ~48,4s bằng spectral freeze cho tới khi lặng, rồi đoạn hạ màn piano kéo chậm 0,78×), sau đó tìm vị trí từng nốt; mọi lần cắt cảnh, dòng code, từ tiếng Việt và chữ cái màn kết đều rơi đúng một nốt có thật (`plan_cuts`, `snap`, `pick_onsets` trong `intro.py`). Thêm `--no-music` để xuất bản không nhạc.
 
 ```sh
 pip install numpy pillow fonttools freetype-py uharfbuzz   # cần thêm ffmpeg
