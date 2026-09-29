@@ -177,8 +177,10 @@ def s_code(cv, t, D):
 
 def s_viet(cv, t, D):
     a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
-    p = ease_out(prog(t, 0.0, 0.9))
-    draw_text(cv, UP, "Tiếng Việt.", 190, W / 2, 520 + 20 * (1 - p), wght=700, grad=GRAD, alpha=a, blur=12 * (1 - p))
+    # cảnh này trùng cú đánh cao trào của nhạc: chữ bật vào nhanh, thu nhỏ nhẹ về kích thước chuẩn
+    p = ease_out(prog(t, 0.0, 0.45))
+    draw_text(cv, UP, "Tiếng Việt.", 190 * (1 + 0.07 * (1 - p)), W / 2, 520, wght=700, grad=GRAD,
+              alpha=a * min(1, p * 1.6), blur=10 * (1 - p))
     p2 = ease_out(prog(t, 1.0, 0.9))
     draw_text(cv, IT, "Chữ đẹp là nết người.", 76, W / 2, 680, wght=400, alpha=a * p2)
     draw_text(cv, UP, "Every diacritic, in its place.", 40, W / 2, 820, color=GRAY, alpha=a * ease_out(prog(t, 2.0, 0.9)))
@@ -227,14 +229,14 @@ def s_end(cv, t, D):
 SCENES = [(0, 6, s_intro), (6, 10, s_tagline), (10, 18, s_weights), (18, 24, s_italic), (24, 32, s_ligatures),
           (32, 40, s_code), (40, 46, s_viet), (46, 50, s_glyphs), (50, 56, s_end)]
 
-# Nhạc: "Wildflowers" by Scott Buckley (CC BY 4.0), nhạc điện ảnh dàn dây + piano.
-# Ghép 2 đoạn của bài: phần mở đầu piano nhẹ (0–12s của bài) → cao trào gần cuối bài,
-# hoà trộn 2 giây ngay đầu cảnh "Seven weights" (video 10–12s). Nốt mạnh ở giây 267.93 của bài
-# rơi đúng giây 12.0 của video, và phần kết tự nhiên của bài trùng với màn kết.
+# Nhạc: "Wildflowers" by Scott Buckley (CC BY 4.0), nhạc điện ảnh dàn dây + piano. Ghép 3 đoạn của bài:
+#   A  mở đầu piano (0–40s của bài) chạy nguyên văn video 0–40s, tự dâng dần; lặng đi 0,7s trước cao trào
+#   B  CAO TRÀO: cú đánh mạnh nhất của bài (giây 219.12) rơi đúng giây 40.0 của video — lúc hiện "Tiếng Việt."
+#   C  HẠ MÀN: câu nhạc kết của bài (giây 305–313), câu cuối vào đúng lúc hiện màn kết (video 50s)
 MUSIC = Path(__file__).parent / "music" / "scott-buckley-wildflowers.mp3"
-MUSIC_A = (0.0, 12.0)            # (bắt đầu, kết thúc) trong bài
-MUSIC_B_START = 267.93 - 2.0     # đoạn B bắt đầu lúc video 10.0
-XFADE = 2.0
+CLIMAX_SONG, CLIMAX_VIDEO = 219.12, 40.0
+HIT_XFADE = 0.25
+OUTRO_SONG, OUTRO_VIDEO, OUTRO_XFADE = 305.0, 48.0, 2.0
 MUSIC_CREDIT = "Music: Wildflowers by Scott Buckley · CC BY 4.0"
 
 
@@ -293,11 +295,15 @@ def main():
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst,
                         "-c", "copy", silent], check=True)
         if MUSIC.exists() and not a.no_music:
-            a_len = MUSIC_A[1] - MUSIC_A[0]
-            b_len = DURATION - a_len + XFADE
-            graph = (f"[1:a]atrim={MUSIC_A[0]}:{MUSIC_A[1]},asetpts=PTS-STARTPTS[a];"
-                     f"[1:a]atrim={MUSIC_B_START}:{MUSIC_B_START + b_len},asetpts=PTS-STARTPTS[b];"
-                     f"[a][b]acrossfade=d={XFADE}:c1=qsin:c2=qsin,"
+            b_start = CLIMAX_SONG - HIT_XFADE                       # B vào lúc video CLIMAX_VIDEO - HIT_XFADE
+            b_len = OUTRO_VIDEO + OUTRO_XFADE - (CLIMAX_VIDEO - HIT_XFADE)
+            c_len = DURATION - OUTRO_VIDEO
+            graph = (f"[1:a]atrim=0:{CLIMAX_VIDEO},asetpts=PTS-STARTPTS,"
+                     f"volume=-4dB,afade=t=out:st={CLIMAX_VIDEO - 0.7}:d=0.7[a];"  # nhỏ hơn cao trào 4dB, lặng một nhịp thở trước cú đánh
+                     f"[1:a]atrim={b_start}:{b_start + b_len},asetpts=PTS-STARTPTS[b];"
+                     f"[1:a]atrim={OUTRO_SONG}:{OUTRO_SONG + c_len},asetpts=PTS-STARTPTS[c];"
+                     f"[a][b]acrossfade=d={HIT_XFADE}:c1=tri:c2=tri[ab];"
+                     f"[ab][c]acrossfade=d={OUTRO_XFADE}:c1=qsin:c2=qsin,"
                      f"afade=t=in:st=0:d=1.0,afade=t=out:st={DURATION - 3.0}:d=3.0")
             # đo độ lớn trước, rồi chuẩn hoá tuyến tính (giữ nguyên độ tương phản nhẹ → cao trào)
             meas = subprocess.run(["ffmpeg", "-hide_banner", "-f", "lavfi", "-i", "anullsrc", "-i", str(MUSIC),
