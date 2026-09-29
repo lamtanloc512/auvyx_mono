@@ -7,3 +7,4 @@ dist/
 # video xuất ra (lớn) — tạo lại bằng video/intro.py
 video/*.mp4
 video/build/
+__pycache__/
