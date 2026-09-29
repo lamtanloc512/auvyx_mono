@@ -47,7 +47,7 @@ Mã nguồn trang web: MIT. Font: SIL Open Font License 1.1.
 
 ## Video giới thiệu
 
-`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, 56 giây, nhạc "Horizons" (Corporate Music Zone, CC BY 4.0, file trong `video/music/`). Khi đăng video phải ghi công theo `video/DESCRIPTION.md`. Các cảnh được đặt theo ô nhịp 2 giây của nhạc (120 BPM), beat vào đúng lúc hiện "Designed for code.". Thêm `--no-music` để xuất bản không nhạc. Dựng lại sau khi đổi font:
+`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, 56 giây, nhạc "Wildflowers" (Scott Buckley, CC BY 4.0, file trong `video/music/`). Khi đăng video phải ghi công theo `video/DESCRIPTION.md`. Nhạc ghép từ đoạn piano mở đầu và đoạn cao trào của bài, hoà vào nhau ở giây 10–12 (đầu cảnh "Seven weights"). Thêm `--no-music` để xuất bản không nhạc.
 
 ```sh
 pip install numpy pillow fonttools freetype-py uharfbuzz   # cần thêm ffmpeg

@@ -46,7 +46,7 @@ def init(font_dir: str, glyph_json: str | None):
 
 # ---------------------------------------------------------------- scenes
 # Mỗi cảnh nhận thời gian cục bộ t (giây, tính từ đầu cảnh) và độ dài D của cảnh.
-# Nhạc 120 BPM: mỗi ô nhịp 2 giây, mọi cảnh bắt đầu đúng phách mạnh.
+# Các cảnh đặt trên lưới 2 giây.
 
 def s_intro(cv, t, D):
     a = fade(t, 0.4, D - 0.2, 0.8, 0.6)
@@ -219,18 +219,23 @@ def s_end(cv, t, D):
               alpha=p * out, blur=14 * (1 - p))
     draw_text(cv, UP, "Free & open source.", 54, W / 2, 680, grad=GRAD, alpha=ease_out(prog(t, 2.0, 0.9)) * out)
     draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, 3.0, 0.9)) * out)
-    draw_text(cv, UP, "Music: Horizons by Corporate Music Zone · CC BY 4.0", 22, W / 2, 1030, color=(90, 90, 96),
+    draw_text(cv, UP, MUSIC_CREDIT, 22, W / 2, 1030, color=(90, 90, 96),
               alpha=ease_out(prog(t, 3.0, 0.9)) * out)
 
 
-# (bắt đầu, kết thúc) — đặt trên lưới 2 giây để khớp ô nhịp của nhạc
+# (bắt đầu, kết thúc) của từng cảnh, tính bằng giây
 SCENES = [(0, 6, s_intro), (6, 10, s_tagline), (10, 18, s_weights), (18, 24, s_italic), (24, 32, s_ligatures),
           (32, 40, s_code), (40, 46, s_viet), (46, 50, s_glyphs), (50, 56, s_end)]
 
-# Nhạc: "Horizons" by Corporate Music Zone (CC BY 4.0). Đoạn lặng kết thúc và beat vào ở giây 80.6 của bài;
-# đặt khớp với giây 6.0 của video (lúc hiện "Designed for code.").
-MUSIC = Path(__file__).parent / "music" / "corporate-music-zone-horizons.mp3"
-MUSIC_DROP, VIDEO_DROP = 80.6, 6.0
+# Nhạc: "Wildflowers" by Scott Buckley (CC BY 4.0), nhạc điện ảnh dàn dây + piano.
+# Ghép 2 đoạn của bài: phần mở đầu piano nhẹ (0–12s của bài) → cao trào gần cuối bài,
+# hoà trộn 2 giây ngay đầu cảnh "Seven weights" (video 10–12s). Nốt mạnh ở giây 267.93 của bài
+# rơi đúng giây 12.0 của video, và phần kết tự nhiên của bài trùng với màn kết.
+MUSIC = Path(__file__).parent / "music" / "scott-buckley-wildflowers.mp3"
+MUSIC_A = (0.0, 12.0)            # (bắt đầu, kết thúc) trong bài
+MUSIC_B_START = 267.93 - 2.0     # đoạn B bắt đầu lúc video 10.0
+XFADE = 2.0
+MUSIC_CREDIT = "Music: Wildflowers by Scott Buckley · CC BY 4.0"
 
 
 def frame(t: float) -> Canvas:
@@ -288,19 +293,23 @@ def main():
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst,
                         "-c", "copy", silent], check=True)
         if MUSIC.exists() and not a.no_music:
-            start = MUSIC_DROP - VIDEO_DROP
-            fades = f"afade=t=in:st=0:d=1.5,afade=t=out:st={DURATION - 3.5}:d=3.5"
-            # đo độ lớn trước, rồi chuẩn hoá tuyến tính (giữ nguyên độ tương phản đoạn lặng → beat vào)
-            meas = subprocess.run(["ffmpeg", "-hide_banner", "-ss", f"{start}", "-t", f"{DURATION}", "-i", str(MUSIC),
-                                   "-af", fades + ",loudnorm=I=-16:TP=-1.5:LRA=20:print_format=json", "-f", "null", "-"],
-                                  capture_output=True, text=True).stderr
+            a_len = MUSIC_A[1] - MUSIC_A[0]
+            b_len = DURATION - a_len + XFADE
+            graph = (f"[1:a]atrim={MUSIC_A[0]}:{MUSIC_A[1]},asetpts=PTS-STARTPTS[a];"
+                     f"[1:a]atrim={MUSIC_B_START}:{MUSIC_B_START + b_len},asetpts=PTS-STARTPTS[b];"
+                     f"[a][b]acrossfade=d={XFADE}:c1=qsin:c2=qsin,"
+                     f"afade=t=in:st=0:d=1.0,afade=t=out:st={DURATION - 3.0}:d=3.0")
+            # đo độ lớn trước, rồi chuẩn hoá tuyến tính (giữ nguyên độ tương phản nhẹ → cao trào)
+            meas = subprocess.run(["ffmpeg", "-hide_banner", "-f", "lavfi", "-i", "anullsrc", "-i", str(MUSIC),
+                                   "-filter_complex", graph + ",loudnorm=I=-16:TP=-1.5:LRA=20:print_format=json[o]",
+                                   "-map", "[o]", "-f", "null", "-"], capture_output=True, text=True).stderr
             m = json.loads(meas[meas.rindex("{"):meas.rindex("}") + 1])
-            af = (fades + f",loudnorm=I=-16:TP=-1.5:LRA=20:linear=true:measured_I={m['input_i']}:measured_TP={m['input_tp']}"
-                  f":measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}")
-            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-ss", f"{start}", "-t", f"{DURATION}",
-                            "-i", str(MUSIC), "-map", "0:v", "-map", "1:a", "-af", af, "-c:v", "copy",
-                            "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-shortest", "-movflags", "+faststart", a.out],
-                           check=True)
+            graph += (f",loudnorm=I=-16:TP=-1.5:LRA=20:linear=true:measured_I={m['input_i']}:measured_TP={m['input_tp']}"
+                      f":measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}[o]")
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", silent, "-i", str(MUSIC),
+                            "-filter_complex", graph, "-map", "0:v", "-map", "[o]", "-c:v", "copy",
+                            "-c:a", "aac", "-b:a", "256k", "-ar", "48000", "-t", f"{DURATION}",
+                            "-movflags", "+faststart", a.out], check=True)
         else:
             shutil.copy(silent, a.out)
     print("OK", a.out)
