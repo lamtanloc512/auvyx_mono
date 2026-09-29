@@ -38,6 +38,7 @@ import_glyphs:
       source: [-200, 0, 532, 750]                              # descender, baseline, x-height, ascender
       target: [-200, 0, 522, 740]
     chars: "kljrvwtf łŧţȷ"
+    source_names: {f: f}      # f không chân (f.mono của Rec có chân)
 
   - name: Recursive-upright
     source: sources/external/recursive/Recursive_VF_1.085.ttf
