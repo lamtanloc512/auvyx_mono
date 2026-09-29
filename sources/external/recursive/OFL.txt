@@ -1,10 +1,8 @@
-Copyright 2026 Ethan Lam (Auvyx Mono, modified version of Lilex)
-Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive) — italic k l j r v w t
-Copyright 2019 The Lilex Project Authors (https://github.com/mishamyrt/Lilex)
+Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-https://openfontlicense.org
+http://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------

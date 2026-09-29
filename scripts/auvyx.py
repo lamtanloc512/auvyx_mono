@@ -24,6 +24,9 @@ from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib.tables import ttProgram
+from fontTools.ttLib.tables._g_l_y_f import Glyph, GlyphCoordinates
+from fontTools.ttLib.tables.TupleVariation import TupleVariation
+from fontTools.varLib import instancer
 from fontTools.varLib.iup import iup_delta
 
 FONT_EXTENSIONS = {".ttf", ".otf", ".woff", ".woff2"}
@@ -239,6 +242,173 @@ def remove_foot(font: ttLib.TTFont, name: str) -> None:
         font["hmtx"][name] = (width, round(bp.bounds[0]))
 
 
+# ---------------------------------------------------------------------------
+# Ghép glyph từ font OFL khác (vd: Recursive)
+# ---------------------------------------------------------------------------
+
+_IMPORT_CACHE: dict = {}
+
+
+def _source_glyph_names(path: str, font: ttLib.TTFont, chars: str) -> dict:
+    """Tên glyph thực tế sau khi áp rvrn/feature variations (shape bằng HarfBuzz)."""
+    import tempfile
+
+    import uharfbuzz as hb
+
+    with tempfile.NamedTemporaryFile(suffix=".ttf") as tmp:
+        font.save(tmp.name)
+        hbf = hb.Font(hb.Face(hb.Blob.from_file_path(tmp.name)))
+        order = font.getGlyphOrder()
+        names = {}
+        for ch in chars:
+            buf = hb.Buffer()
+            buf.add_str(ch)
+            buf.guess_segment_properties()
+            hb.shape(hbf, buf, {})
+            gid = buf.glyph_infos[0].codepoint
+            if gid == 0:
+                raise SystemExit(f"Font nguồn không có ký tự '{ch}'")
+            names[ch] = order[gid]
+        return names
+
+
+def _instance(src: str, loc: dict) -> ttLib.TTFont:
+    key = (src, tuple(sorted(loc.items())))
+    if key not in _IMPORT_CACHE:
+        _IMPORT_CACHE[key] = instancer.instantiateVariableFont(
+            ttLib.TTFont(src), loc, updateFontNames=False
+        )
+    return _IMPORT_CACHE[key]
+
+
+def _outline(font: ttLib.TTFont, name: str):
+    coords, ends, flags = font["glyf"][name].getCoordinates(font["glyf"])
+    return [tuple(c) for c in coords], list(ends), [f & 0x01 for f in flags]
+
+
+def _import_masters(spec: dict, root: Path) -> dict:
+    """Trả về {char: {lilex_wght: (coords, ends, flags)}} đã khớp zone."""
+    key = ("masters", id(spec))
+    if key in _IMPORT_CACHE:
+        return _IMPORT_CACHE[key]
+    src = str(root / spec["source"])
+    axes = {a.axisTag: a for a in ttLib.TTFont(src)["fvar"].axes}
+    wmin = axes["wght"].minValue
+    loc = dict(spec.get("location", {}))
+    chars = spec["chars"].replace(" ", "")
+    t = math.tan(math.radians(-loc.get("slnt", 0)))
+    zs, zt = spec["zones"]["source"], spec["zones"]["target"]
+
+    def zone(y: float) -> float:
+        for i in range(len(zs) - 1):
+            if y <= zs[i + 1] or i == len(zs) - 2:
+                a, b, c, d = zs[i], zs[i + 1], zt[i], zt[i + 1]
+                return c + (y - a) * (d - c) / (b - a)
+        return y
+
+    def at(w: float, ch_names: dict) -> dict:
+        if w >= wmin:
+            f = _instance(src, {**loc, "wght": w})
+            return {ch: _outline(f, n) for ch, n in ch_names.items()}
+        # ngoại suy dưới độ đậm nhỏ nhất của font nguồn
+        step = spec.get("extrapolate_step", 50)
+        f0 = _instance(src, {**loc, "wght": wmin})
+        f1 = _instance(src, {**loc, "wght": wmin + step})
+        k = (wmin - w) / step
+        out = {}
+        for ch, n in ch_names.items():
+            c0, e, fl = _outline(f0, n)
+            c1, _, _ = _outline(f1, n)
+            out[ch] = ([(x0 + (x0 - x1) * k, y0 + (y0 - y1) * k) for (x0, y0), (x1, y1) in zip(c0, c1)], e, fl)
+        return out
+
+    base = _instance(src, {**loc, "wght": max(wmin, 400)})
+    ch_names = _source_glyph_names(src, base, chars)
+    result: dict = {ch: {} for ch in chars}
+    for lw, sw in spec["masters"].items():
+        for ch, (coords, ends, flags) in at(sw, ch_names).items():
+            fixed = []
+            for x, y in coords:
+                xu = x - t * y
+                y2 = zone(y)
+                fixed.append((xu + t * y2, y2))
+            result[ch][int(lw)] = (fixed, ends, flags)
+    for ch, ms in result.items():
+        shapes = {(len(c), tuple(e)) for c, e, _ in ms.values()}
+        if len(shapes) != 1:
+            raise SystemExit(f"'{ch}': outline không tương thích giữa các master")
+    _IMPORT_CACHE[key] = (result, ch_names)
+    return result, ch_names
+
+
+def _lerp_master(ms: dict, w: float):
+    ws = sorted(ms)
+    w = min(max(w, ws[0]), ws[-1])
+    for a, b in zip(ws, ws[1:]):
+        if a <= w <= b:
+            r = (w - a) / (b - a)
+            ca, e, fl = ms[a]
+            cb = ms[b][0]
+            return [(xa + (xb - xa) * r, ya + (yb - ya) * r) for (xa, ya), (xb, yb) in zip(ca, cb)], e, fl
+    return ms[ws[0]]
+
+
+def _make_glyph(coords, ends, flags) -> Glyph:
+    g = Glyph()
+    g.numberOfContours = len(ends)
+    g.coordinates = GlyphCoordinates([(round(x), round(y)) for x, y in coords])
+    g.endPtsOfContours = ends
+    fl = bytearray(flags)
+    if fl:
+        fl[0] |= 0x40  # OVERLAP_SIMPLE
+    g.flags = fl
+    g.program = ttProgram.Program()
+    g.program.fromBytecode(b"")
+    return g
+
+
+def import_glyphs(font: ttLib.TTFont, spec: dict, root: Path) -> list:
+    masters, _ = _import_masters(spec, root)
+    cmap = font.getBestCmap()
+    width = font["hmtx"]["n"][0] if "n" in font["hmtx"].metrics else 600
+    done = []
+    for ch, ms in masters.items():
+        name = cmap.get(ord(ch))
+        if not name:
+            continue
+        if "fvar" in font:
+            default = ms[400]
+            g = _make_glyph(*default)
+            font["glyf"][name] = g
+            g.recalcBounds(font["glyf"])
+            font["hmtx"][name] = (width, g.xMin)
+            dc = [(round(x), round(y)) for x, y in default[0]]
+            variations = []
+            for w, region in ((100, (-1.0, -1.0, 0.0)), (700, (0.0, 1.0, 1.0))):
+                mc = [(round(x), round(y)) for x, y in ms[w][0]]
+                deltas = [(mx - dx, my - dy) for (mx, my), (dx, dy) in zip(mc, dc)] + [(0, 0)] * 4
+                variations.append(TupleVariation({"wght": region}, deltas))
+            font["gvar"].variations[name] = variations
+        else:
+            w = font["OS/2"].usWeightClass
+            coords, ends, flags = _lerp_master(ms, w)
+            g = _make_glyph(coords, ends, flags)
+            if "glyf" in font:
+                font["glyf"][name] = g
+                g.recalcBounds(font["glyf"])
+                font["hmtx"][name] = (width, g.xMin)
+            else:
+                top = font["CFF "].cff.topDictIndex[0]
+                pen = T2CharStringPen(width, None)
+                g.draw(pen, None)
+                top.CharStrings[name] = pen.getCharString(private=top.Private, globalSubrs=font["CFF "].cff.GlobalSubrs)
+                bp = BoundsPen(None)
+                g.draw(bp, None)
+                font["hmtx"][name] = (width, round(bp.bounds[0]))
+        done.append(name)
+    return done
+
+
 def rename(font: ttLib.TTFont, cfg: dict) -> None:
     src, fam, ps = cfg["source_family"], cfg["family"], cfg["postscript"]
     name = font["name"]
@@ -253,6 +423,8 @@ def rename(font: ttLib.TTFont, cfg: dict) -> None:
         if rec.nameID == 0:
             if cfg.get("copyright") and cfg["copyright"] not in value:
                 new = f"{cfg['copyright']}. Based on Lilex: {value}"
+                for extra in cfg.get("extra_copyright", []) or []:
+                    new += f" {extra}"
         elif rec.nameID == 9:
             if cfg.get("designer") and cfg["designer"] not in value:
                 new = f"{value}, {cfg['designer']}"
@@ -277,6 +449,77 @@ def rename(font: ttLib.TTFont, cfg: dict) -> None:
             top.Notice = f"{cfg['copyright']}. {top.Notice}"
 
 
+def transform(font: ttLib.TTFont, item: Path, cfg: dict) -> tuple[set, list]:
+    """Áp mọi chỉnh sửa glyph lên font. Trả về (tên glyph đã đổi, ghi chú)."""
+    italic = is_italic(font)
+    notes: list = []
+    changed: set = set()
+    feats = cfg.get("default_features", {})
+    if isinstance(feats, list):
+        feats = {"upright": feats, "italic": feats}
+    for t in feats.get("italic" if italic else "upright", []) or []:
+        notes.append(f"{t}:{make_default(font, t)}")
+    unfoot = cfg.get("remove_foot", {}) or {}
+    if not italic:
+        for g in unfoot.get("upright", []) or []:
+            remove_foot(font, g)
+            changed.add(g)
+            notes.append(f"{g}:no-foot")
+    if italic and cfg.get("italic_from_upright"):
+        partner = upright_partner(item)
+        if partner is None:
+            sys.exit(f"Không tìm thấy bản đứng tương ứng cho {item.name}")
+        upright = ttLib.TTFont(str(partner))
+        for g in unfoot.get("upright", []) or []:
+            if g in cfg["italic_from_upright"]:
+                remove_foot(upright, g)
+        for g in cfg["italic_from_upright"]:
+            slant_from_upright(font, upright, g)
+            changed.add(g)
+            notes.append(f"{g}←{partner.name}")
+    root = Path(__file__).resolve().parent.parent
+    for spec in cfg.get("import_glyphs", []) or []:
+        if ("italic" if italic else "upright") in spec.get("styles", ["upright", "italic"]):
+            names = import_glyphs(font, spec, root)
+            changed.update(names)
+            notes.append(f"{spec['name']}:{len(names)}")
+    return changed, notes
+
+
+def _dependents(glyf, changed: set) -> set:
+    """Glyph ghép (composite) có dùng — trực tiếp hoặc gián tiếp — glyph đã đổi."""
+    memo: dict = {}
+
+    def uses(name: str) -> bool:
+        if name in memo:
+            return memo[name]
+        memo[name] = False
+        g = glyf[name]
+        r = g.isComposite() and any(c.glyphName in changed or uses(c.glyphName) for c in g.components)
+        memo[name] = r
+        return r
+
+    return {n for n in glyf.keys() if n not in changed and uses(n)}
+
+
+def sync_cff_from_ttf(otf: ttLib.TTFont, ttf: ttLib.TTFont, changed: set) -> int:
+    """CFF không có glyph ghép: vẽ lại các glyph có dấu từ bản TTF đã chỉnh."""
+    top = otf["CFF "].cff.topDictIndex[0]
+    gs = ttf.getGlyphSet()
+    deps = _dependents(ttf["glyf"], changed)
+    for name in deps:
+        if name not in top.CharStrings:
+            continue
+        width = otf["hmtx"][name][0]
+        pen = T2CharStringPen(width, gs)
+        gs[name].draw(pen)
+        top.CharStrings[name] = pen.getCharString(private=top.Private, globalSubrs=otf["CFF "].cff.GlobalSubrs)
+        bp = BoundsPen(gs)
+        gs[name].draw(bp)
+        otf["hmtx"][name] = (width, round(bp.bounds[0]) if bp.bounds else 0)
+    return len(deps)
+
+
 def process(source_dir: Path, target_dir: Path, cfg: dict) -> None:
     src, ps = cfg["source_family"], cfg["postscript"]
     if target_dir.exists():
@@ -291,29 +534,14 @@ def process(source_dir: Path, target_dir: Path, cfg: dict) -> None:
             shutil.copy2(item, dest)
             continue
         font = ttLib.TTFont(str(item))
-        italic = is_italic(font)
-        notes = []
-        feats = cfg.get("default_features", {})
-        if isinstance(feats, list):
-            feats = {"upright": feats, "italic": feats}
-        for t in feats.get("italic" if italic else "upright", []) or []:
-            notes.append(f"{t}:{make_default(font, t)}")
-        unfoot = cfg.get("remove_foot", {}) or {}
-        if not italic:
-            for g in unfoot.get("upright", []) or []:
-                remove_foot(font, g)
-                notes.append(f"{g}:no-foot")
-        if italic and cfg.get("italic_from_upright"):
-            partner = upright_partner(item)
-            if partner is None:
-                sys.exit(f"Không tìm thấy bản đứng tương ứng cho {item.name}")
-            upright = ttLib.TTFont(str(partner))
-            for g in unfoot.get("upright", []) or []:
-                if g in cfg["italic_from_upright"]:
-                    remove_foot(upright, g)
-            for g in cfg["italic_from_upright"]:
-                slant_from_upright(font, upright, g)
-                notes.append(f"{g}←{partner.name}")
+        changed, notes = transform(font, item, cfg)
+        if "CFF " in font and changed:
+            sibling = item.parent.parent / "ttf" / (item.stem + ".ttf")
+            if not sibling.exists():
+                sys.exit(f"Cần {sibling} để cập nhật glyph có dấu cho {item.name}")
+            ttf = ttLib.TTFont(str(sibling))
+            transform(ttf, sibling, cfg)
+            notes.append(f"cff-accents:{sync_cff_from_ttf(font, ttf, changed)}")
         rename(font, cfg)
         font.save(str(dest))
         print(f"  {rel} → {dest.relative_to(target_dir)}  [{' '.join(notes)}]")

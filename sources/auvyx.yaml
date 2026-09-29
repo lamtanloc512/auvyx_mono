@@ -26,3 +26,19 @@ italic_from_upright:
 remove_foot:
   upright:
     - f
+
+# Ghép glyph từ font OFL khác. Outline được khớp độ đậm (theo độ dày thân chữ)
+# và khớp chiều cao (x-height, ascender, descender) với Lilex.
+import_glyphs:
+  - name: Recursive
+    source: sources/external/recursive/Recursive_VF_1.085.ttf   # OFL, xem OFL.txt cùng thư mục
+    styles: [italic]
+    location: {MONO: 1, CASL: 0, slnt: -9.5, CRSV: 0}          # Rec Mono Linear, nghiêng 9.5° như Lilex
+    masters: {100: 238, 400: 367, 700: 750}                    # wght Lilex → wght Recursive (<300 là ngoại suy)
+    zones:
+      source: [-200, 0, 532, 750]                              # descender, baseline, x-height, ascender
+      target: [-200, 0, 522, 740]
+    chars: "kljrvwt łŧţȷ"
+
+extra_copyright:
+  - "Glyphs k l j r v w t (italic) from Recursive: Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
