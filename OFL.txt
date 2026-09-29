@@ -1,3 +1,4 @@
+Copyright 2026 Ethan Lam (Auvyx Mono, modified version of Lilex)
 Copyright 2019 The Lilex Project Authors (https://github.com/mishamyrt/Lilex)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

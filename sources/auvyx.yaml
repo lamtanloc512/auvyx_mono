@@ -1,0 +1,17 @@
+# Auvyx Mono — cấu hình bản fork của Lilex
+# Chạy: make auvyx         (dùng font Lilex có sẵn trong fonts/Lilex)
+#       make auvyx-build   (build Lilex từ source rồi tạo Auvyx Mono)
+
+family: Auvyx Mono          # Tên hiển thị
+postscript: AuvyxMono       # Tên không dấu cách (dùng cho tên file, PostScript name)
+source_family: Lilex        # Tên gốc cần thay
+
+copyright: Copyright 2026 Ethan Lam
+designer: Ethan Lam
+vendor_url: ""              # để trống = xoá URL vendor của Lilex
+
+# Các biến thể được "gắn cứng" làm mặc định.
+# Bật lại feature đó trong editor sẽ trả về glyph gốc của Lilex.
+# Xem danh sách trong sources/opentype_features/cv*.fea, ss*.fea, zero.fea
+default_features:
+  - cv02   # Open g (g một tầng, đuôi mở)

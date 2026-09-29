@@ -240,3 +240,22 @@ clean: ## clean up artifacts
 	@rm -rf $(BUILD_DIR)
 	@rm -rf $(REPORTS_DIR)
 	@rm -rf $(VENV_DIR)
+
+# Auvyx Mono
+
+.PHONY: auvyx
+auvyx: ## create Auvyx Mono from prebuilt Lilex fonts in fonts/Lilex
+	@python3 $(SCRIPTS_DIR)/auvyx.py $(RELEASE_DIR)/Lilex --output $(RELEASE_DIR)/AuvyxMono
+
+.PHONY: auvyx-build
+auvyx-build: ## build Lilex from sources, then create Auvyx Mono in build/AuvyxMono
+	@make build-mono
+	@$(VENV) python $(SCRIPTS_DIR)/auvyx.py $(BUILD_DIR)/Lilex --output $(BUILD_DIR)/AuvyxMono
+
+.PHONY: auvyx-install
+auvyx-install: ## install Auvyx Mono variable fonts (macOS)
+	@rm -rf ~/Library/Fonts/AuvyxMono
+	@mkdir -p ~/Library/Fonts/AuvyxMono
+	@if [ -d "$(BUILD_DIR)/AuvyxMono" ]; then cp $(BUILD_DIR)/AuvyxMono/variable/*.ttf ~/Library/Fonts/AuvyxMono/; \
+	else cp $(RELEASE_DIR)/AuvyxMono/variable/*.ttf ~/Library/Fonts/AuvyxMono/; fi
+	@echo "Installed Auvyx Mono to ~/Library/Fonts/AuvyxMono"

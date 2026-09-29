@@ -1,3 +1,34 @@
+# Auvyx Mono
+
+Auvyx Mono là bản fork của [Lilex](https://github.com/mishamyrt/Lilex) (dựa trên IBM Plex Mono), phát hành theo SIL Open Font License 1.1.
+
+**Khác biệt so với Lilex**
+
+- Tên họ font: `Auvyx Mono` (file `AuvyxMono-*.ttf`)
+- Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex.
+
+**Build**
+
+```sh
+make auvyx          # tạo fonts/AuvyxMono từ font Lilex có sẵn trong fonts/Lilex (chỉ cần Python + fonttools, pyyaml)
+make auvyx-build    # build Lilex từ source (.glyphs) rồi tạo build/AuvyxMono (cần: make configure)
+make auvyx-install  # cài Auvyx Mono (variable) vào ~/Library/Fonts
+```
+
+Cấu hình tên và biến thể mặc định nằm trong [`sources/auvyx.yaml`](sources/auvyx.yaml).
+
+**Cập nhật từ Lilex gốc**
+
+```sh
+git fetch upstream
+git merge upstream/master
+make auvyx
+```
+
+---
+
+*README gốc của Lilex ở dưới.*
+
 <p align="center">
     <img
         src="./images/logo.svg"
