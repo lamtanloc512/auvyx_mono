@@ -37,7 +37,7 @@ import_glyphs:
     zones:
       source: [-200, 0, 532, 750]                              # descender, baseline, x-height, ascender
       target: [-200, 0, 522, 740]
-    chars: "kljrvwt łŧţȷ"
+    chars: "kljrvwtf łŧţȷ"
 
   - name: Recursive-upright
     source: sources/external/recursive/Recursive_VF_1.085.ttf
@@ -61,5 +61,5 @@ import_glyphs:
     chars: "oơø"
 
 extra_copyright:
-  - "Glyphs from Recursive (upright a f j t s w, italic k l j r v w t): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Glyphs from Recursive (upright a f j t s w, italic k l j r v w t f): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
   - "Glyph o from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."

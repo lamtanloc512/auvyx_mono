@@ -8,7 +8,7 @@ Auvyx Mono là bản fork của [Lilex](https://github.com/mishamyrt/Lilex) (d�
 - Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định cho bộ đứng. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex. Bộ nghiêng giữ g một tầng gốc.
 - Chữ `x` nghiêng dùng x thẳng (x đứng xiên 9.5°) thay cho x uốn lượn của Lilex.
 - Bộ đứng: `a f j t s w` (và ą ş ţ ŧ ȷ) lấy từ Recursive Mono Linear, `f` dùng bản không chân; `o` (và ơ ø) lấy từ [Geist Mono](https://github.com/vercel/geist-font) (OFL). Nguồn: `sources/external/`.
-- Bộ nghiêng: `k l j r v w t` (và ł ŧ ţ ȷ, các chữ có dấu tương ứng) lấy từ [Recursive](https://github.com/arrowtype/recursive) Mono Linear (OFL), khớp độ đậm và chiều cao với Lilex. Nguồn: `sources/external/recursive/`.
+- Bộ nghiêng: `k l j r v w t f` (và ł ŧ ţ ȷ, các chữ có dấu tương ứng) lấy từ [Recursive](https://github.com/arrowtype/recursive) Mono Linear (OFL), khớp độ đậm và chiều cao với Lilex. Nguồn: `sources/external/recursive/`.
 
 **Build**
 

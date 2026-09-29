@@ -1,5 +1,5 @@
 Copyright 2026 Ethan Lam (Auvyx Mono, modified version of Lilex)
-Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive) — upright a f j t s w, italic k l j r v w t
+Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive) — upright a f j t s w, italic k l j r v w t f
 Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font) — upright o
 Copyright 2019 The Lilex Project Authors (https://github.com/mishamyrt/Lilex)
 
