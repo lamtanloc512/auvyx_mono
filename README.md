@@ -44,3 +44,15 @@ public/
 ```
 
 Mã nguồn trang web: MIT. Font: SIL Open Font License 1.1.
+
+## Video giới thiệu
+
+`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, 56 giây, không có nhạc. Dựng lại sau khi đổi font:
+
+```sh
+pip install numpy pillow fonttools freetype-py uharfbuzz   # cần thêm ffmpeg
+python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
+python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/frame --preview 3 20 36   # xem thử vài khung hình
+```
+
+Kịch bản và câu chữ nằm trong `video/intro.py` (mỗi cảnh là một hàm `s_*`).
