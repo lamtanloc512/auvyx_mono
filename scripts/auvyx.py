@@ -20,6 +20,7 @@ import math
 import yaml
 from fontTools import ttLib
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib.tables import ttProgram
@@ -135,12 +136,9 @@ def slant_from_upright(italic: ttLib.TTFont, upright: ttLib.TTFont, name: str) -
             new_vars = []
             for var in upright["gvar"].variations.get(name, []):
                 v = copy.deepcopy(var)
-                pts = v.coordinates[: len(ucoords)]
-                phantom = v.coordinates[len(ucoords):]
-                if any(p is None for p in pts):
-                    pts = iup_delta(pts, ucoords, ends)
+                full = _full_deltas(upright, name, var)
+                pts, phantom = full[: len(ucoords)], full[len(ucoords):]
                 sheared = [(round(ddx + t * ddy), ddy) for ddx, ddy in pts]
-                phantom = [p if p is not None else (0, 0) for p in phantom]
                 v.coordinates = sheared + phantom
                 new_vars.append(v)
             italic["gvar"].variations[name] = new_vars
@@ -157,6 +155,88 @@ def slant_from_upright(italic: ttLib.TTFont, upright: ttLib.TTFont, name: str) -
         italic["hmtx"][name] = (width, round(x0 + dx))
     else:
         raise SystemExit("Định dạng outline không hỗ trợ")
+
+
+def _full_deltas(font: ttLib.TTFont, name: str, var) -> list:
+    """Deltas đầy đủ cho mọi điểm (kể cả 4 phantom point), nội suy IUP nếu thiếu."""
+    if all(p is not None for p in var.coordinates):
+        return list(var.coordinates)
+    coords, ctrl = font["glyf"]._getCoordinatesAndControls(
+        name, font["hmtx"].metrics, font["vmtx"].metrics if "vmtx" in font else None
+    )
+    return list(iup_delta(var.coordinates, coords, ctrl.endPts))
+
+
+def _unfoot_points(pts: list, ends: list, name: str) -> list:
+    """Bỏ chân serif ở baseline: kẹp các điểm thấp vào hai cạnh thân chữ."""
+    low = [y for _, y in pts if 0 < y <= 150]
+    if not low:
+        raise SystemExit(f"'{name}': không tìm thấy chân serif")
+    top = min(low)
+    starts = [0] + [e + 1 for e in ends[:-1]]
+    edges = set()
+    for st, en in zip(starts, ends):
+        n = en - st + 1
+        for k in range(n):
+            x, y = pts[st + k]
+            if y != top:
+                continue
+            for nb in (pts[st + (k - 1) % n], pts[st + (k + 1) % n]):
+                if nb[0] == x and nb[1] > top:
+                    edges.add(x)
+    if len(edges) != 2:
+        raise SystemExit(f"'{name}': không xác định được thân chữ (cạnh: {sorted(edges)})")
+    lo, hi = sorted(edges)
+    return [(min(max(x, lo), hi), y) if y <= top else (x, y) for x, y in pts]
+
+
+def remove_foot(font: ttLib.TTFont, name: str) -> None:
+    if "glyf" in font:
+        glyf = font["glyf"]
+        g = glyf[name]
+        base = list(g.coordinates)
+        ends = list(g.endPtsOfContours)
+        new_base = _unfoot_points(base, ends, name)
+        if "gvar" in font:
+            new_vars = []
+            for var in font["gvar"].variations.get(name, []):
+                v = copy.deepcopy(var)
+                full = _full_deltas(font, name, var)
+                d, phantom = full[: len(base)], full[len(base):]
+                master = [(x + dx, y + dy) for (x, y), (dx, dy) in zip(base, d)]
+                new_master = _unfoot_points(master, ends, name)
+                v.coordinates = [
+                    (round(mx - bx), round(my - by))
+                    for (mx, my), (bx, by) in zip(new_master, new_base)
+                ] + phantom
+                new_vars.append(v)
+            font["gvar"].variations[name] = new_vars
+        for i, pt in enumerate(new_base):
+            g.coordinates[i] = pt
+        g.program = ttProgram.Program()
+        g.program.fromBytecode(b"")
+        g.recalcBounds(glyf)
+        font["hmtx"][name] = (font["hmtx"][name][0], g.xMin)
+    elif "CFF " in font:
+        top = font["CFF "].cff.topDictIndex[0]
+        rec = RecordingPen()
+        font.getGlyphSet()[name].draw(rec)
+        pts, ends = [], []
+        for op, args in rec.value:
+            pts.extend(args)
+            if op in ("closePath", "endPath") and pts:
+                ends.append(len(pts) - 1)
+        # điểm đầu (moveTo) trùng điểm cuối contour trong CFF → vẫn đúng với heuristic
+        new = _unfoot_points(pts, ends, name)
+        it = iter(new)
+        width = font["hmtx"][name][0]
+        pen = T2CharStringPen(width, None)
+        for op, args in rec.value:
+            getattr(pen, op)(*[next(it) for _ in args])
+        top.CharStrings[name] = pen.getCharString(private=top.Private, globalSubrs=font["CFF "].cff.GlobalSubrs)
+        bp = BoundsPen(None)
+        font.getGlyphSet()[name].draw(bp)
+        font["hmtx"][name] = (width, round(bp.bounds[0]))
 
 
 def rename(font: ttLib.TTFont, cfg: dict) -> None:
@@ -218,11 +298,19 @@ def process(source_dir: Path, target_dir: Path, cfg: dict) -> None:
             feats = {"upright": feats, "italic": feats}
         for t in feats.get("italic" if italic else "upright", []) or []:
             notes.append(f"{t}:{make_default(font, t)}")
+        unfoot = cfg.get("remove_foot", {}) or {}
+        if not italic:
+            for g in unfoot.get("upright", []) or []:
+                remove_foot(font, g)
+                notes.append(f"{g}:no-foot")
         if italic and cfg.get("italic_from_upright"):
             partner = upright_partner(item)
             if partner is None:
                 sys.exit(f"Không tìm thấy bản đứng tương ứng cho {item.name}")
             upright = ttLib.TTFont(str(partner))
+            for g in unfoot.get("upright", []) or []:
+                if g in cfg["italic_from_upright"]:
+                    remove_foot(upright, g)
             for g in cfg["italic_from_upright"]:
                 slant_from_upright(font, upright, g)
                 notes.append(f"{g}←{partner.name}")

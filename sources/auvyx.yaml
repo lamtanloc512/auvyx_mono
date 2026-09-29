@@ -21,3 +21,8 @@ default_features:
 # Glyph nghiêng được thay bằng glyph đứng xiên theo góc nghiêng (9.5°)
 italic_from_upright:
   - x      # bỏ chữ x uốn lượn, dùng x thẳng
+
+# Bỏ chân serif ở baseline
+remove_foot:
+  upright:
+    - f
