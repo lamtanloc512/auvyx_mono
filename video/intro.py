@@ -94,9 +94,9 @@ def s_weights(cv, t, D):  # ô 8–12: dồn lên Bold đúng lúc beat vào
     cv.rect(x0 + (x1 - x0) * phase - 10, y - 8, 20, 20, WHITE, a, 10)
 
 
-# ---- MONTAGE: cắt cảnh nhanh dần theo nhịp rồi chậm lại (ô 12–22)
-# (số ô nhịp, số phách mỗi cảnh): 2 phách → 1 phách → nửa phách (đỉnh) → 1 phách → 2 phách
-RAMP = [(2, 2.0), (2, 1.0), (2, 0.5), (2, 1.0), (2, 2.0)]
+# ---- MONTAGE: cắt cảnh theo nhịp. Mỗi đoạn montage = [(số ô nhịp, số phách mỗi cảnh), ...]
+MONTAGE_1 = [(2, 2.0), (2, 1.0), (2, 0.5)]            # ô 12–18: 2 phách → 1 phách → nửa phách
+MONTAGE_2 = [(2, 1.0), (2, 0.5), (1, 0.5), (1, 0.25)]  # ô 22–28: dồn dập tới sát đoạn hạ màn
 
 # (kiểu, nội dung, cỡ chữ, wght, nghiêng?, màu) — màu: "w" trắng, "g" gradient, "i" đảo nền trắng
 CARDS = [
@@ -119,41 +119,62 @@ CARDS = [
 ]
 
 
-def _montage_cuts():
+def _cuts(ramp):
     cuts, beat = [], 0.0
-    for bars, per in RAMP:
-        n = int(round(bars * 4 / per))
-        for _ in range(n):
+    for bars, per in ramp:
+        for _ in range(int(round(bars * 4 / per))):
             cuts.append((beat * BEAT, per * BEAT))
             beat += per
     return cuts
 
 
-CUTS = _montage_cuts()
+def _card(i):
+    """Cảnh thứ i; lặp lại danh sách với độ đậm/kiểu khác để không trùng."""
+    kind, txt, size, wght, italic, col = CARDS[i % len(CARDS)]
+    rnd = i // len(CARDS)
+    if rnd:
+        wght = 100 + (wght - 100 + 300 * rnd) % 700
+        wght = min(700, wght)
+        if len(txt) <= 2:
+            italic = not italic
+        if col == "i":
+            col = "w"
+    return kind, txt, size, wght, italic, col
 
 
-def s_montage(cv, t, D):
-    for i, (c0, dur) in enumerate(CUTS):
-        if c0 <= t < c0 + dur:
-            kind, txt, size, wght, italic, col = CARDS[i % len(CARDS)]
-            lt = (t - c0) / dur
-            if col == "i":
-                cv.a[:] = np.array(WHITE, np.float32) / 255
-            face = IT if italic else UP
-            grow = 1 + 0.035 * lt                                   # zoom chậm trong mỗi cảnh
-            base = H / 2 + size * 0.36
-            kw = dict(wght=wght, feats=(("calt", True),))
-            if col == "g":
-                kw["grad"] = GRAD
-            else:
-                kw["color"] = (12, 12, 14) if col == "i" else WHITE
-            pin = 1.0 if dur < 0.5 else ease_out(clamp(lt * dur / 0.08))  # cắt nhanh: vào thẳng, không mờ dần
-            draw_text(cv, face, txt, size * grow, W / 2, base, alpha=pin, **kw)
-            # nhãn nhỏ phía dưới cho các cảnh dài
-            if dur >= 2 * BEAT - 1e-6:
-                tag = f"{'Italic' if italic else 'Upright'} · wght {wght}"
-                draw_text(cv, UP, tag, 30, W / 2, H - 120, color=(90, 90, 96) if col != "i" else (120, 120, 126), alpha=pin)
-            return
+def montage(ramp, offset):
+    cuts = _cuts(ramp)
+
+    def scene(cv, t, D):
+        for i, (c0, dur) in enumerate(cuts):
+            if c0 <= t < c0 + dur:
+                kind, txt, size, wght, italic, col = _card(offset + i)
+                if dur < 0.2 and col == "i":        # cảnh cực nhanh: không đảo nền trắng (tránh nháy sáng)
+                    col = "w"
+                lt = (t - c0) / dur
+                if col == "i":
+                    cv.a[:] = np.array(WHITE, np.float32) / 255
+                face = IT if italic else UP
+                grow = 1 + 0.035 * lt
+                base = H / 2 + size * 0.36
+                kw = dict(wght=wght, feats=(("calt", True),))
+                if col == "g":
+                    kw["grad"] = GRAD
+                else:
+                    kw["color"] = (12, 12, 14) if col == "i" else WHITE
+                pin = 1.0 if dur < 0.5 else ease_out(clamp(lt * dur / 0.08))
+                draw_text(cv, face, txt, size * grow, W / 2, base, alpha=pin, **kw)
+                if dur >= 2 * BEAT - 1e-6:
+                    tag = f"{'Italic' if italic else 'Upright'} · wght {wght}"
+                    draw_text(cv, UP, tag, 30, W / 2, H - 120, color=(90, 90, 96) if col != "i" else (120, 120, 126), alpha=pin)
+                return
+
+    scene.count = len(cuts)
+    return scene
+
+
+s_montage1 = montage(MONTAGE_1, 0)
+s_montage2 = montage(MONTAGE_2, s_montage1.count)
 
 
 CODE = """// Auvyx Mono — calm, clear, made for code
@@ -193,64 +214,93 @@ def tokenize(line: str) -> list[str]:
     return kinds
 
 
-def s_code(cv, t, D):  # ô 22–25: nhạc lắng xuống
-    a = fade(t, 0.1, D - 0.1, 0.6, 0.45)
+def s_code(cv, t, D):  # ô 18–20: mỗi phách hiện 1 dòng code
+    a = fade(t, 0.0, D - 0.05, 0.25, 0.2)
     draw_text(cv, UP, "Made for long sessions.", 44, W / 2, 170, color=GRAY, alpha=a)
     cx, cy, cw, ch = 260, 240, 1400, 640
-    lift = 30 * (1 - ease_out(prog(t, 0.1, 0.8)))
+    lift = 24 * (1 - ease_out(prog(t, 0.0, 0.3)))
     cv.rect(cx, cy + lift, cw, ch, (28, 28, 32), a, 28)
     for i, c in enumerate([(255, 95, 87), (254, 188, 46), (40, 200, 64)]):
         cv.rect(cx + 32 + i * 34, cy + lift + 30, 18, 18, c, a, 9)
     size, lh = 32, 58
-    n = int(max(0, t - 0.4) * 62)  # ký tự đã gõ
-    shown = CODE[:n]
-    lines = shown.split("\n")
+    all_lines = CODE.split("\n")
     x0, y0 = cx + 70, cy + lift + 130
-    for li, line in enumerate(lines):
-        kinds = tokenize(CODE.split("\n")[li])[: len(line)]
+    for li, full in enumerate(all_lines):
+        t_line = li * BEAT                                  # dòng li xuất hiện ở phách li
+        if t < t_line:
+            break
+        n = int(len(full) * clamp((t - t_line) / (BEAT * 0.7)))   # gõ xong trong 70% phách
+        line = full[:n]
+        kinds = tokenize(full)[: len(line)]
         for k in set(kinds):
             layer = "".join(chh if kk == k else " " for chh, kk in zip(line, kinds))
             face = IT if k == "com" else UP
             draw_text(cv, face, layer.rstrip(), size, x0, y0 + li * lh, color=COL[k], alpha=a, align="left")
-    if n < len(CODE) or int(t * 2) % 2 == 0:
-        last = lines[-1] if lines else ""
-        cxp = x0 + advance(UP, last + "x", size) - advance(UP, "x", size) if last else x0
-        cv.rect(cxp + 2, y0 + (len(lines) - 1) * lh - size * 0.8, 3, size * 1.05, (255, 138, 76), a, 1)
 
 
-def s_viet(cv, t, D):  # ô 25–29
-    a = fade(t, 0.1, D - 0.1, 0.7, 0.5)
-    p = ease_out(prog(t, 0.0, 0.9))
-    draw_text(cv, UP, "Tiếng Việt.", 190, W / 2, 520 + 20 * (1 - p), wght=700, grad=GRAD, alpha=a, blur=12 * (1 - p))
-    p2 = ease_out(prog(t, BAR, 0.9))
-    draw_text(cv, IT, "Chữ đẹp là nết người.", 76, W / 2, 680, wght=400, alpha=a * p2)
-    draw_text(cv, UP, "Every diacritic, in its place.", 40, W / 2, 820, color=GRAY, alpha=a * ease_out(prog(t, 2 * BAR, 0.9)))
+def s_viet(cv, t, D):  # ô 20–22: tiêu đề vào phách mạnh, mỗi phách một từ
+    a = fade(t, 0.0, D - 0.05, 0.2, 0.2)
+    p = ease_out(prog(t, 0.0, 0.3))
+    draw_text(cv, UP, "Tiếng Việt.", 190 * (1 + 0.06 * (1 - p)), W / 2, 520, wght=700, grad=GRAD,
+              alpha=a * min(1, p * 1.5), blur=8 * (1 - p))
+    words = "Chữ đẹp là nết người.".split(" ")
+    shown = [w for k, w in enumerate(words) if t >= (3 + k) * BEAT]
+    if shown:
+        full = " ".join(words)
+        # giữ vị trí cố định: vẽ cả câu nhưng chỉ phần đã hiện (các từ sau thay bằng khoảng trắng)
+        part = " ".join(shown) + " " * (len(full) - len(" ".join(shown)))
+        draw_text(cv, IT, part, 76, W / 2, 680, wght=400, alpha=a)
+    draw_text(cv, UP, "Every diacritic, in its place.", 40, W / 2, 820, color=GRAY, alpha=a * ease_out(prog(t, 5 * BEAT, 0.3)))
 
 
-def s_end(cv, t, D):  # ô 29 → hết: đoạn hạ màn của bài
-    out = 1 - ease_in_out(prog(t, D - 1.5, 1.4))
-    p = ease_out(prog(t, 0.0, 1.4))
-    draw_text(cv, UP, "Auvyx Mono", 170, W / 2, 560, wght=100 + 600 * ease_in_out(prog(t, 0.0, 2 * BAR)),
-              alpha=p * out, blur=14 * (1 - p))
-    draw_text(cv, UP, "Free & open source.", 54, W / 2, 680, grad=GRAD, alpha=ease_out(prog(t, 2 * BAR, 0.9)) * out)
-    draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, 3 * BAR, 0.9)) * out)
-    draw_text(cv, UP, MUSIC_CREDIT, 22, W / 2, 1030, color=(90, 90, 96), alpha=ease_out(prog(t, 3 * BAR, 0.9)) * out)
+def s_end(cv, t, D):  # ô 28 → hết: đoạn hạ màn, piano rải nốt mỗi nửa phách
+    NOTE = BEAT / 2
+    out = 1 - ease_in_out(prog(t, D - 1.4, 1.3))
+    title = "Auvyx Mono"
+    size, base = 170, 560
+    x_left = W / 2 - advance(UP, title, size, 700) / 2
+    step = advance(UP, "AA", size, 700) - advance(UP, "A", size, 700)   # độ rộng 1 ô monospace
+    k = 0
+    for i, ch in enumerate(title):
+        if ch == " ":
+            continue
+        tn = k * NOTE                                     # mỗi chữ cái vào đúng một nốt piano
+        k += 1
+        if t < tn:
+            continue
+        p = ease_out(prog(t, tn, 0.35))
+        draw_text(cv, UP, ch, size, x_left + i * step, base + 18 * (1 - p), wght=700, alpha=p * out,
+                  blur=6 * (1 - p), align="left")
+    t2 = 12 * NOTE                                        # sau 9 chữ cái + 3 nốt nghỉ
+    for j, w in enumerate(["Free", "&", "open", "source."]):
+        tn = t2 + j * NOTE
+        if t < tn:
+            break
+        p = ease_out(prog(t, tn, 0.3))
+        full = "Free & open source."
+        before = " ".join(["Free", "&", "open", "source."][:j])
+        x = W / 2 - advance(UP, full, 54) / 2 + (advance(UP, before + " ", 54) if j else 0)
+        draw_text(cv, UP, w, 54, x, 680 + 10 * (1 - p), grad=GRAD, alpha=p * out, align="left")
+    t3 = t2 + 8 * NOTE
+    draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, t3, 0.6)) * out)
+    draw_text(cv, UP, MUSIC_CREDIT, 22, W / 2, 1030, color=(90, 90, 96), alpha=ease_out(prog(t, t3, 0.6)) * out)
 
 
 # ---------------------------------------------------------------- timeline & nhạc
 SCENES = [(0, bar(4), s_intro), (bar(4), bar(8), s_tagline), (bar(8), bar(12), s_weights),
-          (bar(12), bar(22), s_montage), (bar(22), bar(25), s_code), (bar(25), bar(29), s_viet),
-          (bar(29), None, s_end)]
+          (bar(12), bar(18), s_montage1), (bar(18), bar(20), s_code), (bar(20), bar(22), s_viet),
+          (bar(22), bar(28), s_montage2), (bar(28), None, s_end)]
 
 MUSIC = Path(__file__).parent / "music" / "ethereal88-in-the-remains-of-the-day.mp3"
 MUSIC_CREDIT = "Music: In the Remains of the Day by Ethereal 88 · CC BY 4.0"
-# Ghép 3 đoạn, mỗi chỗ nối nằm đúng vạch ô nhịp:
-#   A  bài 0 → ô 22: piano mở đầu, beat vào ở ô 12 (giây 21.0) = lúc montage bắt đầu cắt nhanh
-#   B  đoạn lắng của bài (ô 48, giây 82.7) nối vào ô 22 của video: nhạc dịu lại khi cảnh chậm lại
-#   C  đoạn hạ màn của bài (ô 100, giây 171.8) nối vào ô 29 của video: màn kết
-SEG_B_SONG_BAR, SEG_C_SONG_BAR = 48, 100
-X1, X2 = BEAT, 2 * BEAT                         # độ dài hoà trộn ở 2 chỗ nối
-DURATION = round(bar(29) + (180.6 - (GRID0 + SEG_C_SONG_BAR * BAR)), 2)
+# Ghép 2 đoạn, chỗ nối nằm đúng vạch ô nhịp:
+#   A  bài 0 → ô 24: piano mở đầu, beat vào ở ô 12 (giây 21.0) = lúc montage bắt đầu
+#   B  bài từ ô 97 tới hết: 4 ô cuối còn sôi động, rồi đoạn hạ màn (piano rải nốt) bắt đầu ở ô 101
+#      của bài = ô 28 của video = lúc chữ của màn kết bắt đầu hiện theo từng nốt
+SPLICE_VIDEO_BAR, SPLICE_SONG_BAR = 24, 97
+XF = BEAT                                           # độ dài hoà trộn ở chỗ nối
+SONG_END = 180.8
+DURATION = round(bar(SPLICE_VIDEO_BAR) + (SONG_END - (GRID0 + SPLICE_SONG_BAR * BAR)), 2)
 
 
 def frame(t: float) -> Canvas:
@@ -309,18 +359,12 @@ def main():
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst,
                         "-c", "copy", silent], check=True)
         if MUSIC.exists() and not a.no_music:
-            j1, j2 = bar(22), bar(29)                                   # 2 chỗ nối trên video
-            b_song = GRID0 + SEG_B_SONG_BAR * BAR - X1 / 2              # B vào lúc video j1 - X1/2
-            c_song = GRID0 + SEG_C_SONG_BAR * BAR - X2 / 2
-            a_len = j1 + X1 / 2
-            b_len = (j2 + X2 / 2) - (j1 - X1 / 2)
-            c_len = DURATION - (j2 - X2 / 2)
-            graph = (f"[1:a]atrim=0:{a_len},asetpts=PTS-STARTPTS[a];"
-                     f"[1:a]atrim={b_song}:{b_song + b_len},asetpts=PTS-STARTPTS[b];"
-                     f"[1:a]atrim={c_song}:{c_song + c_len},asetpts=PTS-STARTPTS[c];"
-                     f"[a][b]acrossfade=d={X1}:c1=qsin:c2=qsin[ab];"
-                     f"[ab][c]acrossfade=d={X2}:c1=qsin:c2=qsin,"
-                     f"afade=t=out:st={DURATION - 1.2}:d=1.2")
+            j = bar(SPLICE_VIDEO_BAR)
+            b_song = GRID0 + SPLICE_SONG_BAR * BAR - XF / 2
+            graph = (f"[1:a]atrim=0:{j + XF / 2},asetpts=PTS-STARTPTS[a];"
+                     f"[1:a]atrim={b_song}:{SONG_END},asetpts=PTS-STARTPTS[b];"
+                     f"[a][b]acrossfade=d={XF}:c1=qsin:c2=qsin,"
+                     f"afade=t=out:st={DURATION - 0.8}:d=0.8")
             meas = subprocess.run(["ffmpeg", "-hide_banner", "-f", "lavfi", "-i", "anullsrc", "-i", str(MUSIC),
                                    "-filter_complex", graph + ",loudnorm=I=-15:TP=-1.5:LRA=20:print_format=json[o]",
                                    "-map", "[o]", "-f", "null", "-"], capture_output=True, text=True).stderr
