@@ -1,7 +1,7 @@
 name: Build & deploy
 
 # push nhánh bất kỳ  → kiểm tra build font + website
-# push nhánh main    → deploy website lên GitHub Pages (https://lamtanloc512.github.io/auvyx-mono/)
+# push nhánh main    → deploy website lên GitHub Pages (https://lamtanloc512.github.io/auvyx_mono/)
 # push tag v*        → tạo GitHub Release kèm file AuvyxMono-<tag>.zip
 
 on:

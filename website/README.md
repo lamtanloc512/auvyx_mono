@@ -25,7 +25,7 @@ Script sẽ copy webfont, tạo lại file tải về `public/download/AuvyxMono
 ## Deploy
 
 Tự động: mỗi lần push lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yaml`) build font + trang và deploy lên
-GitHub Pages tại https://lamtanloc512.github.io/auvyx-mono/. `robots.txt` và sitemap được tạo tự động theo `src/config.ts`.
+GitHub Pages tại https://lamtanloc512.github.io/auvyx_mono/. `robots.txt` và sitemap được tạo tự động theo `src/config.ts`.
 
 Dùng domain riêng: đổi `url` thành domain của bạn và `base` thành `"/"` trong `src/config.ts`, thêm file `public/CNAME`.
 

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lamtanloc512/auvyx-mono.git"
+    "url": "git+https://github.com/lamtanloc512/auvyx_mono.git"
   },
   "description": "Auvyx Mono — a monospaced typeface for code",
   "scripts": {

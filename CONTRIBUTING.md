@@ -4,7 +4,7 @@ Thanks for your interest in improving Auvyx Mono!
 
 ## Issues
 
-Search [existing issues](https://github.com/lamtanloc512/auvyx-mono/issues) first, then use one of the templates to report a rendering problem or
+Search [existing issues](https://github.com/lamtanloc512/auvyx_mono/issues) first, then use one of the templates to report a rendering problem or
 suggest an improvement. Screenshots with the exact text, size, app and OS help a lot.
 
 ## Changes
