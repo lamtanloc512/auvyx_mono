@@ -51,7 +51,7 @@ import_glyphs:
     zones:
       source: [-200, 0, 532, 750]
       target: [-200, 0, 516, 740]
-    chars: "afjtsw ąşţŧȷ"
+    chars: "afjtswr ąşţŧȷ"
     source_names: {f: f}      # f.mono của Rec có chân; glyph "f" (ở MONO=1) không chân, cùng độ rộng 600
 
   - name: Geist
@@ -65,5 +65,5 @@ import_glyphs:
     chars: "oơø"
 
 extra_copyright:
-  - "Glyphs from Recursive (upright a f j t s w, italic k l j r v w t f): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Glyphs from Recursive (upright a f j t s w r, italic k l j r v w t f): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
   - "Glyph o from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."
