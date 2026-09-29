@@ -47,12 +47,23 @@ Mã nguồn trang web: MIT. Font: SIL Open Font License 1.1.
 
 ## Video giới thiệu
 
-`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, 61 giây, nhạc "In the Remains of the Day" (Ethereal 88, CC BY 4.0, 140 BPM, file trong `video/music/`). Khi đăng video phải ghi công theo `video/DESCRIPTION.md`. Nhạc được dựng trước bằng `video/music.py` (ghép đoạn, **ngân nốt dừng** ở ~48,4s bằng tiếng piano đệm cùng hợp âm (spectral freeze, ~3,6s) cho tới khi lặng, rồi đoạn hạ màn piano kéo chậm 0,78×), sau đó tìm vị trí từng nốt; mọi thay đổi trên hình — độ đậm tăng từng nấc ở đoạn mở đầu, từng từ của tagline, mỗi lần cắt cảnh, dòng code, từ tiếng Việt và chữ cái màn kết — đều rơi đúng một nốt có thật (`plan_cuts`, `snap`, `pick_onsets` trong `intro.py`). Thêm `--no-music` để xuất bản không nhạc.
+`video/auvyx-mono-intro.mp4` — 1920×1080, 30fps, ~60 giây (không commit vào git vì nặng; tạo lại bằng lệnh dưới).
+Nhạc: "In the Remains of the Day" (Ethereal 88, CC BY 4.0, 140 BPM) — khi đăng phải ghi công theo `video/DESCRIPTION.md`.
+
+Kịch bản (mọi thay đổi trên hình rơi đúng một nốt nhạc có thật):
+
+1. **Giải phẫu** — chữ "a" dựng từ đường cong Bézier (điểm neo, tay nắm), camera cận cảnh bám đầu bút rồi lùi ra
+2. **Tên** — "Auvyx Mono" gõ từng chữ, đậm dần · **Tagline** từng từ
+3. **Độ đậm** — "Aa" nhảy nấc Thin → Bold; ô nhịp cuối camera lao vào nét chữ → trắng xoá đúng lúc beat vào
+4. **Montage** — cắt theo nốt, nhanh dần, nhiều bố cục (chữ khổng lồ, cắt cận, lưới, bậc độ đậm, ligature, dòng chữ chạy)
+5. **Code**, **Tiếng Việt**, montage dồn dập, **bão glyph** đầy màn hình
+6. **Fermata** — nốt dừng ngân trong tiếng vang; bão glyph nổ tung như quay chậm, chữ "a" mờ dần theo tiếng ngân
+7. **Hạ màn** — piano chậm dần (ritardando); "Auvyx Mono" hiện từng chữ theo từng nốt
 
 ```sh
 pip install numpy pillow fonttools freetype-py uharfbuzz   # cần thêm ffmpeg
 python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
-python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/frame --preview 3 20 36   # xem thử vài khung hình
+python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/frame --preview 3 20.5 48.6
 ```
 
-Kịch bản và câu chữ nằm trong `video/intro.py` (mỗi cảnh là một hàm `s_*`).
+Các file: `video/music.py` (dựng nhạc, reverb, ritardando, tìm nốt), `video/intro.py` (kịch bản), `video/outline.py` (vẽ đường cong glyph), `video/fx.py` (camera, bloom, grain, vignette), `video/engine.py` (vẽ chữ).

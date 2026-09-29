@@ -3,3 +3,7 @@ dist/
 .astro/
 .DS_Store
 *.log
+
+# video xuất ra (lớn) — tạo lại bằng video/intro.py
+video/*.mp4
+video/build/

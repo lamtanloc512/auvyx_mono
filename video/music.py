@@ -3,9 +3,9 @@
 Bài: "In the Remains of the Day" by Ethereal 88 (CC BY 4.0), 140 BPM.
   A  bài 0 → ô 24: piano mở đầu, beat vào ở ô 12
   B  4 ô sôi động cuối bài (ô 97 → nốt mạnh ở phách đầu ô 101)
-  ✦  NỐT DỪNG: nốt mạnh ở phách đầu ô 101 (~48,4s của video). Thân nốt được thay bằng tiếng piano đệm
-     cùng hợp âm (lấy từ đoạn hạ màn, không có trống/bass), "ngân" bằng spectral freeze rồi tắt hẳn về im lặng
-  C  đoạn hạ màn piano (các nốt sau đó tới hết bài), kéo chậm lại (giữ cao độ)
+  ✦  FERMATA: nốt mạnh ở phách đầu ô 101 (chỗ chính bài chuyển sang đoạn hạ màn) được giữ lại và ngân
+     trong tiếng vang (reverb) tự nhiên ~2s — như khoảnh khắc mọi thứ lặng đi sau cao trào
+  C  đoạn hạ màn piano tiếp tục, chậm dần (ritardando) cho tới nốt cuối, tan trong tiếng vang
 """
 from __future__ import annotations
 
@@ -122,11 +122,42 @@ def place(dst: np.ndarray, src: np.ndarray, at: float, fade_in=0.0, fade_out=0.0
     dst[s:e] += src[: e - s]
 
 
-def build(path: str, video_bar, duration: float, out_wav: str, sustain=2.6, outro_start_gap=0.0):
-    """Trả về dict: onsets (s), strengths, t_stop, c_start, tempo_c."""
+def reverb_ir(rt60=2.8, length=3.2, seed=3, lp=5000.0) -> np.ndarray:
+    """Tiếng vang tổng hợp: nhiễu giảm dần theo hàm mũ, hai kênh lệch nhau, cắt bớt âm cao."""
+    rng = np.random.default_rng(seed)
+    n = int(length * SR)
+    t = np.arange(n) / SR
+    env = 10 ** (-3 * t / rt60)
+    ir = rng.standard_normal((n, 2)).astype(np.float32) * env[:, None]
+    spec = np.fft.rfft(ir, axis=0)
+    f = np.fft.rfftfreq(n, 1 / SR)
+    spec *= (1 / np.sqrt(1 + (f / lp) ** 2))[:, None]
+    ir = np.fft.irfft(spec, n=n, axis=0).astype(np.float32)
+    ir[: int(0.012 * SR)] *= np.linspace(0, 1, int(0.012 * SR))[:, None]   # pre-delay mềm
+    return ir / np.sqrt((ir ** 2).sum(axis=0, keepdims=True))
+
+
+def convolve(x: np.ndarray, ir: np.ndarray) -> np.ndarray:
+    n = len(x) + len(ir) - 1
+    N = 1 << (n - 1).bit_length()
+    return np.fft.irfft(np.fft.rfft(x, N, axis=0) * np.fft.rfft(ir, N, axis=0), N, axis=0)[:n].astype(np.float32)
+
+
+def fades(x, fin=0.0, fout=0.0):
+    x = x.copy()
+    if fin > 0:
+        k = min(len(x), int(fin * SR))
+        x[:k] *= np.linspace(0, 1, k)[:, None]
+    if fout > 0:
+        k = min(len(x), int(fout * SR))
+        x[-k:] *= np.linspace(1, 0, k)[:, None]
+    return x
+
+
+def build(path: str, video_bar, out_wav: str, fermata=2.0, rit=(0.92, 0.6), max_dur=62.0):
+    """Dựng nhạc; trả về dict (onsets, strengths, t_stop, c_start, duration)."""
     song = decode(path)
-    mono = song.mean(axis=1)
-    s_t, s_f = detect_onsets(mono)
+    s_t, s_f = detect_onsets(song.mean(axis=1))
 
     def nearest(t, win=0.08):
         m = np.abs(s_t - t) <= win
@@ -135,31 +166,60 @@ def build(path: str, video_bar, duration: float, out_wav: str, sustain=2.6, outr
     XF = BEAT
     j = video_bar(24)
     b_song0 = song_bar(97)
-    stop_song = nearest(song_bar(101))                    # nốt dừng (phách đầu ô 101 của bài)
-    next_song = float(s_t[s_t > stop_song + 0.1][0])      # nốt piano kế tiếp = bắt đầu đoạn hạ màn
-    off_b = j - b_song0                                    # video = bài + off_b trong đoạn B
+    stop_song = nearest(song_bar(101))
+    outro_notes = s_t[(s_t > stop_song + 0.1) & (s_t < 180.0)]
+    next_song = float(outro_notes[0])
+    off_b = j - b_song0
     t_stop = stop_song + off_b
-    c_start = t_stop + sustain + outro_start_gap
-    song_end = 180.8
-    tempo_c = (song_end - next_song) / (duration - c_start)
+    c_start = t_stop + fermata
 
-    mix = np.zeros((int(duration * SR) + SR, 2), np.float32)
+    total = int(max_dur * SR) + SR
+    mix = np.zeros((total, 2), np.float32)
+    ir = reverb_ir()
+
+    def put(x, at, gain=1.0):
+        s0 = int(round(at * SR))
+        e = min(total, s0 + len(x))
+        mix[s0:e] += x[: e - s0] * gain
+
+    # A + B (chỗ nối đúng vạch ô nhịp, hoà trộn 1 phách)
     A = song[: int((j + XF / 2) * SR)]
-    place(mix, A, 0.0, fade_out=XF)
-    B = song[int((b_song0 - XF / 2) * SR): int((stop_song + 0.17) * SR)]
-    place(mix, B, j - XF / 2, fade_in=XF, fade_out=0.05)
-    # nốt ngân: vào từ 0,12s sau nốt dừng, giữ ~0,35s rồi tắt dần theo hàm mũ về -60 dB
-    body = np.sqrt(np.mean(song[int((stop_song + 0.04) * SR): int((stop_song + 0.17) * SR)] ** 2))
-    drone = freeze(song, PIANO_FREEZE_AT, sustain + 0.3, n=8192, hop=2048, ref=body)
-    tt = np.arange(len(drone)) / SR + 0.12                 # thời gian tính từ nốt dừng
-    drone *= drone_env(tt, sustain)[:, None].astype(np.float32)
-    place(mix, drone, t_stop + 0.12, fade_in=0.08, gain=DRONE_GAIN)
-    C = decode(path, start=next_song - 0.01, end=song_end, tempo=tempo_c)
-    place(mix, C, c_start, fade_in=0.01)
-    mix = mix[: int(duration * SR)]
+    k = int(XF * SR)
+    A = A.copy()
+    A[-k:] *= np.cos(np.linspace(0, np.pi / 2, k))[:, None] ** 2
+    put(A, 0.0)
+    B = song[int((b_song0 - XF / 2) * SR): int((next_song - 0.012) * SR)].copy()
+    B[:k] *= np.sin(np.linspace(0, np.pi / 2, k))[:, None] ** 2
+    B = fades(B, 0, 0.03)
+    put(B, j - XF / 2)
 
-    # chuẩn hoá: đoạn nhanh ~ -16 dBFS RMS, đỉnh không quá -1 dBFS
-    fast = mix[int(21 * SR): int(47 * SR)]
+    # FERMATA: tiếng vang của nốt dừng ngân tiếp trong khoảng lặng
+    hit = fades(song[int((stop_song - 0.005) * SR): int((next_song - 0.012) * SR)], 0.003, 0.03)
+    wet = convolve(hit, reverb_ir(rt60=4.2, length=4.5, seed=11, lp=4200))
+    put(wet, t_stop - 0.005, gain=0.85)
+
+    # C: đoạn hạ màn, chậm dần — chia theo các nốt, mỗi đoạn một tốc độ (giữ cao độ)
+    cuts = [next_song] + [float(t) for t in outro_notes[8::8]] + [180.8]
+    pieces, tempos = [], np.linspace(rit[0], rit[1], len(cuts) - 1)
+    for (a, b), tp in zip(zip(cuts[:-1], cuts[1:]), tempos):
+        pieces.append(decode(path, start=a - 0.004, end=b - 0.004, tempo=float(tp)))
+    xf = int(0.012 * SR)
+    C = pieces[0]
+    for pc in pieces[1:]:
+        C[-xf:] *= np.linspace(1, 0, xf)[:, None]
+        pc = pc.copy()
+        pc[:xf] *= np.linspace(0, 1, xf)[:, None]
+        C = np.concatenate([C[:-xf], C[-xf:] + pc[:xf], pc[xf:]])
+    C = fades(C, 0.004, 0.0)
+    put(C, c_start)
+    put(convolve(C, ir), c_start, gain=0.22)          # không gian cho piano, nốt cuối tan dần
+
+    mono = np.abs(mix.mean(axis=1))
+    lvl = np.convolve(mono, np.ones(2205) / 2205, "same")
+    alive = np.nonzero(lvl > 10 ** (-66 / 20))[0]
+    duration = min(max_dur, round((alive[-1] / SR) + 0.8, 2))
+    mix = mix[: int(duration * SR)]
+    fast = mix[int(21 * SR): int((t_stop - 1) * SR)]
     g = 10 ** (-16 / 20) / (np.sqrt(np.mean(fast ** 2)) + 1e-9)
     g = min(g, 10 ** (-1 / 20) / (np.abs(mix).max() + 1e-9))
     mix *= g
@@ -169,7 +229,6 @@ def build(path: str, video_bar, duration: float, out_wav: str, sustain=2.6, outr
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(pcm.tobytes())
-
     on_t, on_f = detect_onsets(mix.mean(axis=1))
     return {"onsets": on_t.tolist(), "strengths": on_f.tolist(), "t_stop": t_stop, "c_start": c_start,
-            "tempo_c": tempo_c, "sustain": sustain}
+            "duration": duration}
