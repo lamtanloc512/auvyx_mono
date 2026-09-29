@@ -253,9 +253,9 @@ def s_viet(cv, t, D):  # ô 20–22: tiêu đề vào phách mạnh, mỗi phác
     draw_text(cv, UP, "Every diacritic, in its place.", 40, W / 2, 820, color=GRAY, alpha=a * ease_out(prog(t, 5 * BEAT, 0.3)))
 
 
-def s_end(cv, t, D):  # ô 28 → hết: đoạn hạ màn, piano rải nốt mỗi nửa phách
-    NOTE = BEAT / 2
-    out = 1 - ease_in_out(prog(t, D - 1.4, 1.3))
+def s_end(cv, t, D):  # ô 28 → hết: đoạn hạ màn — mỗi chữ cái một phách (nốt piano thứ hai)
+    STEP = BEAT                                           # 1 phách / chữ cái (piano rải nốt mỗi nửa phách)
+    out = 1 - ease_in_out(prog(t, D - 1.3, 1.25))
     title = "Auvyx Mono"
     size, base = 170, 560
     x_left = W / 2 - advance(UP, title, size, 700) / 2
@@ -264,43 +264,51 @@ def s_end(cv, t, D):  # ô 28 → hết: đoạn hạ màn, piano rải nốt m�
     for i, ch in enumerate(title):
         if ch == " ":
             continue
-        tn = k * NOTE                                     # mỗi chữ cái vào đúng một nốt piano
+        tn = k * STEP
         k += 1
         if t < tn:
             continue
-        p = ease_out(prog(t, tn, 0.35))
-        draw_text(cv, UP, ch, size, x_left + i * step, base + 18 * (1 - p), wght=700, alpha=p * out,
-                  blur=6 * (1 - p), align="left")
-    t2 = 12 * NOTE                                        # sau 9 chữ cái + 3 nốt nghỉ
-    for j, w in enumerate(["Free", "&", "open", "source."]):
-        tn = t2 + j * NOTE
+        p = ease_out(prog(t, tn, 0.7))                    # mỗi chữ hiện chậm, mềm
+        draw_text(cv, UP, ch, size, x_left + i * step, base + 22 * (1 - p), wght=700, alpha=p * out,
+                  blur=8 * (1 - p), align="left")
+    words = ["Free", "&", "open", "source."]
+    full = " ".join(words)
+    t2 = (9 + 2) * STEP                                   # sau 9 chữ cái + nghỉ 2 phách
+    for j, w in enumerate(words):
+        tn = t2 + j * STEP
         if t < tn:
             break
-        p = ease_out(prog(t, tn, 0.3))
-        full = "Free & open source."
-        before = " ".join(["Free", "&", "open", "source."][:j])
+        p = ease_out(prog(t, tn, 0.6))
+        before = " ".join(words[:j])
         x = W / 2 - advance(UP, full, 54) / 2 + (advance(UP, before + " ", 54) if j else 0)
-        draw_text(cv, UP, w, 54, x, 680 + 10 * (1 - p), grad=GRAD, alpha=p * out, align="left")
-    t3 = t2 + 8 * NOTE
-    draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, t3, 0.6)) * out)
-    draw_text(cv, UP, MUSIC_CREDIT, 22, W / 2, 1030, color=(90, 90, 96), alpha=ease_out(prog(t, t3, 0.6)) * out)
+        draw_text(cv, UP, w, 54, x, 680 + 12 * (1 - p), grad=GRAD, alpha=p * out, align="left")
+    t3 = t2 + (4 + 1) * STEP
+    draw_text(cv, UP, "SIL Open Font License 1.1", 30, W / 2, 760, color=GRAY, alpha=ease_out(prog(t, t3, 1.0)) * out)
+    draw_text(cv, UP, MUSIC_CREDIT, 22, W / 2, 1030, color=(90, 90, 96), alpha=ease_out(prog(t, t3, 1.0)) * out)
 
 
 # ---------------------------------------------------------------- timeline & nhạc
+def s_silence(cv, t, D):  # ô 28–29: khoảng lặng — màn hình đen, không nhạc
+    pass
+
+
 SCENES = [(0, bar(4), s_intro), (bar(4), bar(8), s_tagline), (bar(8), bar(12), s_weights),
           (bar(12), bar(18), s_montage1), (bar(18), bar(20), s_code), (bar(20), bar(22), s_viet),
-          (bar(22), bar(28), s_montage2), (bar(28), None, s_end)]
+          (bar(22), bar(28), s_montage2), (bar(28), bar(29), s_silence), (bar(29), None, s_end)]
 
 MUSIC = Path(__file__).parent / "music" / "ethereal88-in-the-remains-of-the-day.mp3"
 MUSIC_CREDIT = "Music: In the Remains of the Day by Ethereal 88 · CC BY 4.0"
-# Ghép 2 đoạn, chỗ nối nằm đúng vạch ô nhịp:
+# Ghép nhạc, mọi chỗ nối nằm đúng vạch ô nhịp:
 #   A  bài 0 → ô 24: piano mở đầu, beat vào ở ô 12 (giây 21.0) = lúc montage bắt đầu
-#   B  bài từ ô 97 tới hết: 4 ô cuối còn sôi động, rồi đoạn hạ màn (piano rải nốt) bắt đầu ở ô 101
-#      của bài = ô 28 của video = lúc chữ của màn kết bắt đầu hiện theo từng nốt
-SPLICE_VIDEO_BAR, SPLICE_SONG_BAR = 24, 97
-XF = BEAT                                           # độ dài hoà trộn ở chỗ nối
+#   B  4 ô sôi động cuối bài (ô 97–101) = ô 24–28 của video, dừng đột ngột ở ô 28
+#   —  khoảng lặng 1 ô nhịp (ô 28–29)
+#   C  đoạn hạ màn piano (ô 101 của bài → hết) bắt đầu ở ô 29 của video, cùng lúc chữ màn kết hiện
+SPLICE_VIDEO_BAR, B_SONG_BAR, OUTRO_SONG_BAR = 24, 97, 101
+SILENCE_BARS = 1
+XF = BEAT                                           # hoà trộn ở chỗ nối A → B
 SONG_END = 180.8
-DURATION = round(bar(SPLICE_VIDEO_BAR) + (SONG_END - (GRID0 + SPLICE_SONG_BAR * BAR)), 2)
+DURATION = 60.0
+OUTRO_VIDEO = bar(SPLICE_VIDEO_BAR + (OUTRO_SONG_BAR - B_SONG_BAR) + SILENCE_BARS)
 
 
 def frame(t: float) -> Canvas:
@@ -359,12 +367,17 @@ def main():
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst,
                         "-c", "copy", silent], check=True)
         if MUSIC.exists() and not a.no_music:
+            fmt = "aformat=sample_rates=44100:channel_layouts=stereo"
             j = bar(SPLICE_VIDEO_BAR)
-            b_song = GRID0 + SPLICE_SONG_BAR * BAR - XF / 2
-            graph = (f"[1:a]atrim=0:{j + XF / 2},asetpts=PTS-STARTPTS[a];"
-                     f"[1:a]atrim={b_song}:{SONG_END},asetpts=PTS-STARTPTS[b];"
-                     f"[a][b]acrossfade=d={XF}:c1=qsin:c2=qsin,"
-                     f"afade=t=out:st={DURATION - 0.8}:d=0.8")
+            song = lambda b: GRID0 + b * BAR  # noqa: E731
+            b0, b1 = song(B_SONG_BAR) - XF / 2, song(OUTRO_SONG_BAR) - 0.01
+            c0 = song(OUTRO_SONG_BAR) - 0.01
+            graph = (f"[1:a]atrim=0:{j + XF / 2},asetpts=PTS-STARTPTS,{fmt}[a];"
+                     f"[1:a]atrim={b0}:{b1},asetpts=PTS-STARTPTS,{fmt},afade=t=out:st={b1 - b0 - 0.04}:d=0.04[b];"
+                     f"[a][b]acrossfade=d={XF}:c1=qsin:c2=qsin[ab];"
+                     f"anullsrc=r=44100:cl=stereo,atrim=0:{SILENCE_BARS * BAR},{fmt}[s];"
+                     f"[1:a]atrim={c0}:{SONG_END},asetpts=PTS-STARTPTS,{fmt},afade=t=in:st=0:d=0.02[c];"
+                     f"[ab][s][c]concat=n=3:v=0:a=1,apad=whole_dur={DURATION}")
             meas = subprocess.run(["ffmpeg", "-hide_banner", "-f", "lavfi", "-i", "anullsrc", "-i", str(MUSIC),
                                    "-filter_complex", graph + ",loudnorm=I=-15:TP=-1.5:LRA=20:print_format=json[o]",
                                    "-map", "[o]", "-f", "null", "-"], capture_output=True, text=True).stderr
