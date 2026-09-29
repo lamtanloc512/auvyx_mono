@@ -51,6 +51,7 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   function show(cell: HTMLElement) {
     big.textContent = cell.textContent;
     nameEl.textContent = cell.dataset.name ?? "";
+    nameEl.title = cell.dataset.name ?? "";
     cpEl.textContent = cell.dataset.cp ?? "";
   }
   document.querySelectorAll<HTMLElement>(".glyphs .cell").forEach((c) => {
@@ -82,13 +83,18 @@ const hex = (cp: number) => "U+" + cp.toString(16).toUpperCase().padStart(4, "0"
   .explorer { display: grid; grid-template-columns: 320px 1fr; gap: 24px; margin-top: 40px; align-items: start; }
   .inspector { position: sticky; top: 88px; padding: 24px; display: grid; gap: 18px; }
   .big {
-    display: grid; place-items: center; height: 240px; font-size: 180px; line-height: 1;
+    display: grid; place-items: center; height: 240px; font-size: 180px; line-height: 1; overflow: hidden;
     background:
       linear-gradient(var(--line), var(--line)) 0 62% / 100% 1px no-repeat,
       linear-gradient(var(--line), var(--line)) 0 30% / 100% 1px no-repeat;
   }
-  .info { display: grid; gap: 6px; font-size: 14px; }
-  .info code { color: var(--muted); }
+  .info { display: grid; gap: 6px; font-size: 14px; line-height: 1.6; }
+  /* Giữ chiều cao cố định (2 dòng) để khung không nhảy khi tên ký tự dài/ngắn */
+  #g-name {
+    height: 3.2em; overflow: hidden;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  }
+  .info code { color: var(--muted); height: 1.6em; }
   .weights { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--muted); }
   .weights label { display: flex; align-items: center; gap: 10px; flex: 1; }
   .group-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }

@@ -1,6 +1,6 @@
 # Auvyx Mono — website
 
-Trang giới thiệu font [Auvyx Mono](../auvyx_mono). Viết bằng [Astro](https://astro.build): xuất ra HTML tĩnh, gần như không có JavaScript, tốt cho SEO và tốc độ tải.
+Trang giới thiệu font Auvyx Mono (repo font: `../auvyx_mono`). Viết bằng [Astro](https://astro.build): xuất ra HTML tĩnh, gần như không có JavaScript, tốt cho SEO và tốc độ tải.
 
 ## Chạy
 

@@ -1,33 +1,32 @@
 ---
 import { SITE } from "../config";
-const credits = [
-  ["Lilex", "Mikhael Khrustik", "https://github.com/mishamyrt/Lilex", "The foundation: skeleton, ligatures, symbols and most glyphs."],
-  ["IBM Plex Mono", "IBM, Mike Abbink & Bold Monday", "https://github.com/IBM/plex", "The typeface Lilex itself grew from."],
-  ["Recursive", "Arrow Type", "https://github.com/arrowtype/recursive", "Upright a f j t s w and italic f j k l r t v w, from Rec Mono Linear."],
-  ["Geist Mono", "Vercel", "https://github.com/vercel/geist-font", "The upright o, ơ and ø."],
+const inspirations = [
+  ["IBM Plex", "https://github.com/IBM/plex"],
+  ["Recursive", "https://github.com/arrowtype/recursive"],
+  ["Geist Mono", "https://github.com/vercel/geist-font"],
 ];
 ---
 <section class="credits">
   <div class="wrap grid">
     <div>
       <p class="eyebrow">Open source</p>
-      <h2>Standing on the shoulders of giants.</h2>
+      <h2>Free to use, free to share.</h2>
       <p class="lead">
-        Auvyx Mono is a remix of excellent open-source typefaces, released
-        under the <a href="https://openfontlicense.org">SIL Open Font License 1.1</a>.
-        Use it anywhere — personal or commercial — and share your changes under
-        the same license.
+        Auvyx Mono is released under the
+        <a href="https://openfontlicense.org">SIL Open Font License 1.1</a>.
+        Use it anywhere — personal or commercial projects — and share your
+        changes under the same license.
       </p>
     </div>
-    <ul class="list">
-      {credits.map(([name, by, url, what]) => (
-        <li>
-          <a href={url} rel="noopener"><b>{name}</b></a>
-          <span class="by">by {by}</span>
-          <p>{what}</p>
-        </li>
-      ))}
-    </ul>
+    <div>
+      <h3 class="insp-title">Inspired by</h3>
+      <ul class="list">
+        {inspirations.map(([name, url]) => (
+          <li><a href={url} rel="noopener">{name}</a></li>
+        ))}
+      </ul>
+      <p class="note">Full copyright notices are included in <code>OFL.txt</code> inside the download.</p>
+    </div>
   </div>
 </section>
 
@@ -39,12 +38,12 @@ const credits = [
 </footer>
 
 <style>
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: end; }
+  .insp-title { font-size: 14px; font-weight: 400; color: var(--muted); margin-bottom: 14px; }
   .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  .list li { padding: 18px 0; border-bottom: 1px solid var(--line); }
-  .list a { text-decoration: none; font-size: 18px; }
-  .by { color: var(--muted); font-size: 13px; margin-left: 10px; }
-  .list p { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+  .list li { padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .list a { text-decoration: none; font-size: clamp(22px, 2.6vw, 30px); font-weight: 600; }
+  .note { margin: 16px 0 0; font-size: 13px; color: var(--muted); }
   .footer { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 13px; }
   .foot { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
   .muted { color: var(--muted); }

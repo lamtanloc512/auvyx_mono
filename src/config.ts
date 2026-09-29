@@ -10,5 +10,4 @@ export const SITE = {
   repo: "https://github.com/", // TODO: link repo GitHub của Auvyx Mono
   download: "/download/AuvyxMono.zip",
   version: "1.0",
-  basedOn: "Lilex 2.700",
 };
