@@ -128,8 +128,13 @@ def _cuts(ramp):
     return cuts
 
 
+FINAL_CARD = ("t", "Aa", 520, 700, False, "w")          # cảnh cuối của montage — cú "đánh" kết thúc, rồi chậm lại
+
+
 def _card(i):
     """Cảnh thứ i; lặp lại danh sách với độ đậm/kiểu khác để không trùng."""
+    if i == TOTAL_CUTS - 1:
+        return FINAL_CARD
     kind, txt, size, wght, italic, col = CARDS[i % len(CARDS)]
     rnd = i // len(CARDS)
     if rnd:
@@ -175,6 +180,7 @@ def montage(ramp, offset):
 
 s_montage1 = montage(MONTAGE_1, 0)
 s_montage2 = montage(MONTAGE_2, s_montage1.count)
+TOTAL_CUTS = s_montage1.count + s_montage2.count
 
 
 CODE = """// Auvyx Mono — calm, clear, made for code
@@ -288,20 +294,32 @@ def s_end(cv, t, D):  # ô 28 → hết: đoạn hạ màn — mỗi chữ cái 
 
 
 # ---------------------------------------------------------------- timeline & nhạc
-def s_silence(cv, t, D):  # ô 28–29: khoảng lặng — màn hình đen, không nhạc
-    pass
+def s_afterglow(cv, t, D):  # ô 28–29: "sau trận cao trào" — cảnh cuối chậm lại như slow-motion rồi tan vào bóng tối
+    kind, txt, size, wght, italic, col = FINAL_CARD
+    face = IT if italic else UP
+    k = ease_out(prog(t, 0.0, D))                    # thời gian như chậm lại: chuyển động mạnh lúc đầu, rồi gần như dừng
+    alpha = 1 - ease_in_out(prog(t, 0.15, D - 0.2))
+    gray = tuple(int(c + (g - c) * k) for c, g in zip(WHITE, GRAY))
+    kw = dict(wght=wght, feats=(("calt", True),))
+    if col == "g":
+        kw["grad"] = GRAD
+    else:
+        kw["color"] = gray
+    draw_text(cv, face, txt, size * (1.04 + 0.16 * k), W / 2, H / 2 + size * 0.36 * (1.04 + 0.16 * k),
+              alpha=alpha, blur=14 * k, **kw)
 
 
 SCENES = [(0, bar(4), s_intro), (bar(4), bar(8), s_tagline), (bar(8), bar(12), s_weights),
           (bar(12), bar(18), s_montage1), (bar(18), bar(20), s_code), (bar(20), bar(22), s_viet),
-          (bar(22), bar(28), s_montage2), (bar(28), bar(29), s_silence), (bar(29), None, s_end)]
+          (bar(22), bar(28), s_montage2), (bar(28), bar(29), s_afterglow), (bar(29), None, s_end)]
 
 MUSIC = Path(__file__).parent / "music" / "ethereal88-in-the-remains-of-the-day.mp3"
 MUSIC_CREDIT = "Music: In the Remains of the Day by Ethereal 88 · CC BY 4.0"
 # Ghép nhạc, mọi chỗ nối nằm đúng vạch ô nhịp:
 #   A  bài 0 → ô 24: piano mở đầu, beat vào ở ô 12 (giây 21.0) = lúc montage bắt đầu
 #   B  4 ô sôi động cuối bài (ô 97–101) = ô 24–28 của video, dừng đột ngột ở ô 28
-#   —  khoảng lặng 1 ô nhịp (ô 28–29)
+#   —  ô 28–29: "hậu cao trào" — phách cuối được kéo chậm (hạ tốc độ + hạ cao độ như slow-motion),
+#      vang dội (echo), bị nghẹt dần (lọc âm cao) rồi tan vào im lặng; hình cũng chậm lại và mờ đi
 #   C  đoạn hạ màn piano (ô 101 của bài → hết) bắt đầu ở ô 29 của video, cùng lúc chữ màn kết hiện
 SPLICE_VIDEO_BAR, B_SONG_BAR, OUTRO_SONG_BAR = 24, 97, 101
 SILENCE_BARS = 1
@@ -377,7 +395,14 @@ def main():
                      f"[a][b]acrossfade=d={XF}:c1=qsin:c2=qsin[ab];"
                      f"anullsrc=r=44100:cl=stereo,atrim=0:{SILENCE_BARS * BAR},{fmt}[s];"
                      f"[1:a]atrim={c0}:{SONG_END},asetpts=PTS-STARTPTS,{fmt},afade=t=in:st=0:d=0.02[c];"
-                     f"[ab][s][c]concat=n=3:v=0:a=1,apad=whole_dur={DURATION}")
+                     f"[ab][s][c]concat=n=3:v=0:a=1,apad=whole_dur={DURATION}[main];"
+                     # đuôi slow-motion: lấy phách cuối trước chỗ dừng, chậm lại 0,55x, vang + nghẹt dần
+                     f"[1:a]atrim={song(OUTRO_SONG_BAR) - BEAT}:{song(OUTRO_SONG_BAR) - 0.01},asetpts=PTS-STARTPTS,{fmt},"
+                     f"asetrate=44100*0.55,aresample=44100,apad=pad_dur=2.6,"
+                     f"aecho=0.8:0.85:90|210|420|760:0.45|0.35|0.25|0.16,"
+                     f"lowpass=f=1400,lowpass=f=1400,volume=-2dB,"
+                     f"afade=t=out:st=0.25:d=2.2,adelay={int(bar(28) * 1000)}|{int(bar(28) * 1000)}[tail];"
+                     f"[main][tail]amix=inputs=2:normalize=0:duration=first")
             meas = subprocess.run(["ffmpeg", "-hide_banner", "-f", "lavfi", "-i", "anullsrc", "-i", str(MUSIC),
                                    "-filter_complex", graph + ",loudnorm=I=-15:TP=-1.5:LRA=20:print_format=json[o]",
                                    "-map", "[o]", "-f", "null", "-"], capture_output=True, text=True).stderr
