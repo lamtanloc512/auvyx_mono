@@ -1,9 +1,10 @@
-// Thông tin chung của trang (canonical URL, Open Graph, sitemap).
-// Mặc định deploy lên GitHub Pages: https://lamtanloc512.github.io/auvyx_mono/
-// Nếu dùng domain riêng: đặt url = "https://domain-cua-ban", base = "/".
+// Vercel deploy website/ tại gốc domain; GitHub Pages dùng đường dẫn repo.
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+const isVercel = process.env.VERCEL === "1";
+
 export const SITE = {
-  url: "https://lamtanloc512.github.io",
-  base: "/auvyx_mono/",
+  url: isVercel && vercelHost ? `https://${vercelHost}` : "https://lamtanloc512.github.io",
+  base: isVercel ? "/" : "/auvyx_mono/",
   name: "Auvyx Mono",
   title: "Auvyx Mono — a monospaced typeface for code",
   description:

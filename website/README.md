@@ -24,10 +24,9 @@ Script sẽ copy webfont, tạo lại file tải về `public/download/AuvyxMono
 
 ## Deploy
 
-Tự động: mỗi lần push lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yaml`) build font + trang và deploy lên
-GitHub Pages tại https://lamtanloc512.github.io/auvyx_mono/. `robots.txt` và sitemap được tạo tự động theo `src/config.ts`.
+Vercel: import repo, chọn Root Directory là `website`, dùng framework preset Astro và lệnh build `npm run build` (output `dist`). Vercel tự đặt `VERCEL=1`, trang sẽ dùng đường dẫn gốc `/` cho CSS, JS, font và file tải về. `VERCEL_PROJECT_PRODUCTION_URL` được dùng cho canonical URL, Open Graph và sitemap; nếu chưa có thì dùng `VERCEL_URL`. Nếu dùng domain riêng, cấu hình domain production trong Vercel.
 
-Dùng domain riêng: đổi `url` thành domain của bạn và `base` thành `"/"` trong `src/config.ts`, thêm file `public/CNAME`.
+GitHub Pages: workflow `.github/workflows/ci.yaml` build font và trang khi push lên `main`, rồi deploy tại https://lamtanloc512.github.io/auvyx_mono/. Repo cần bật Pages và gói GitHub phải hỗ trợ Pages cho repo đó.
 
 ## Cấu trúc
 
