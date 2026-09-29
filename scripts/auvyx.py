@@ -20,6 +20,7 @@ import math
 import yaml
 from fontTools import ttLib
 from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.pointPen import DecomposingPointPen
 from fontTools.pens.recordingPen import RecordingPen
 from fontTools.pens.t2CharStringPen import T2CharStringPen
 from fontTools.pens.transformPen import TransformPen
@@ -281,23 +282,65 @@ def _instance(src: str, loc: dict) -> ttLib.TTFont:
     return _IMPORT_CACHE[key]
 
 
-def _outline(font: ttLib.TTFont, name: str):
-    coords, ends, flags = font["glyf"][name].getCoordinates(font["glyf"])
-    return [tuple(c) for c in coords], list(ends), [f & 0x01 for f in flags]
+class _Collect(DecomposingPointPen):
+    """Gom điểm outline (đã tách glyph ghép) theo đúng thứ tự, để các vị trí trục tương thích nhau."""
+
+    skipMissingComponents = True
+
+    def __init__(self, glyphSet):
+        super().__init__(glyphSet)
+        self.coords, self.ends, self.flags = [], [], []
+
+    def beginPath(self, identifier=None, **kw):
+        pass
+
+    def addPoint(self, pt, segmentType=None, smooth=False, name=None, identifier=None, **kw):
+        self.coords.append((float(pt[0]), float(pt[1])))
+        self.flags.append(1 if segmentType else 0)
+
+    def endPath(self):
+        if self.coords and (not self.ends or self.ends[-1] != len(self.coords) - 1):
+            self.ends.append(len(self.coords) - 1)
+
+
+def _outline_at(vf: ttLib.TTFont, name: str, loc: dict):
+    gs = vf.getGlyphSet(location=loc, normalized=False)
+    pen = _Collect(gs)
+    gs[name].drawPoints(pen)
+    return pen.coords, pen.ends, pen.flags
+
+
+def _stroke(coords, ends, flags) -> float:
+    """Độ dày nét trung bình ≈ 2·diện tích / chu vi (đo trên ảnh raster, xử lý được contour chồng nhau)."""
+    import numpy as np
+    from fontTools.pens.freetypePen import FreeTypePen
+
+    g = _make_glyph(coords, ends, flags)
+    pen = FreeTypePen(None)
+    g.draw(pen, None)
+    sc = 0.5
+    a = np.asarray(pen.array(width=int(1700 * sc), height=int(1900 * sc), transform=(sc, 0, 0, sc, 550 * sc, 550 * sc), contain=False)) > 0.5
+    area = a.sum()
+    if not area:
+        return 0.0
+    inner = a[1:-1, 1:-1] & a[:-2, 1:-1] & a[2:, 1:-1] & a[1:-1, :-2] & a[1:-1, 2:]
+    return 2 * area / (area - inner.sum()) / sc
 
 
 def _import_masters(spec: dict, root: Path) -> dict:
-    """Trả về {char: {lilex_wght: (coords, ends, flags)}} đã khớp zone."""
+    """Trả về {char: {lilex_wght: (coords, ends, flags)}} đã khớp zone (và khớp độ dày nét nếu bật)."""
     key = ("masters", id(spec))
     if key in _IMPORT_CACHE:
         return _IMPORT_CACHE[key]
     src = str(root / spec["source"])
-    axes = {a.axisTag: a for a in ttLib.TTFont(src)["fvar"].axes}
-    wmin = axes["wght"].minValue
+    vf = ttLib.TTFont(src)
+    axes = {a.axisTag: a for a in vf["fvar"].axes}
+    wmin, wmax = axes["wght"].minValue, axes["wght"].maxValue
     loc = dict(spec.get("location", {}))
     chars = spec["chars"].replace(" ", "")
     t = math.tan(math.radians(-loc.get("slnt", 0)))
     zs, zt = spec["zones"]["source"], spec["zones"]["target"]
+    step = spec.get("extrapolate_step", 50)
 
     def zone(y: float) -> float:
         for i in range(len(zs) - 1):
@@ -306,34 +349,55 @@ def _import_masters(spec: dict, root: Path) -> dict:
                 return c + (y - a) * (d - c) / (b - a)
         return y
 
-    def at(w: float, ch_names: dict) -> dict:
+    def raw(name: str, w: float):
         if w >= wmin:
-            f = _instance(src, {**loc, "wght": w})
-            return {ch: _outline(f, n) for ch, n in ch_names.items()}
+            return _outline_at(vf, name, {**loc, "wght": min(w, wmax)})
         # ngoại suy dưới độ đậm nhỏ nhất của font nguồn
-        step = spec.get("extrapolate_step", 50)
-        f0 = _instance(src, {**loc, "wght": wmin})
-        f1 = _instance(src, {**loc, "wght": wmin + step})
+        c0, e, fl = _outline_at(vf, name, {**loc, "wght": wmin})
+        c1, _, _ = _outline_at(vf, name, {**loc, "wght": wmin + step})
         k = (wmin - w) / step
-        out = {}
-        for ch, n in ch_names.items():
-            c0, e, fl = _outline(f0, n)
-            c1, _, _ = _outline(f1, n)
-            out[ch] = ([(x0 + (x0 - x1) * k, y0 + (y0 - y1) * k) for (x0, y0), (x1, y1) in zip(c0, c1)], e, fl)
-        return out
+        return [(x0 + (x0 - x1) * k, y0 + (y0 - y1) * k) for (x0, y0), (x1, y1) in zip(c0, c1)], e, fl
+
+    def fitted(name: str, w: float):
+        coords, ends, flags = raw(name, w)
+        out = []
+        for x, y in coords:
+            xu = x - t * y
+            y2 = zone(y)
+            out.append((xu + t * y2, y2))
+        return out, ends, flags
 
     base = _instance(src, {**loc, "wght": max(wmin, 400)})
     ch_names = _source_glyph_names(src, base, chars)
     ch_names.update(spec.get("source_names", {}) or {})  # ép dùng glyph khác trong font nguồn
+
+    # Tham chiếu: glyph Lilex gốc của chính ký tự đó, để chữ mới đậm/nhạt đúng như chữ nó thay thế
+    ref = None
+    if spec.get("match_stroke") and spec.get("reference"):
+        ref = ttLib.TTFont(str(root / spec["reference"]))
+        ref_cmap = ref.getBestCmap()
+
     result: dict = {ch: {} for ch in chars}
-    for lw, sw in spec["masters"].items():
-        for ch, (coords, ends, flags) in at(sw, ch_names).items():
-            fixed = []
-            for x, y in coords:
-                xu = x - t * y
-                y2 = zone(y)
-                fixed.append((xu + t * y2, y2))
-            result[ch][int(lw)] = (fixed, ends, flags)
+    report = []
+    for ch, name in ch_names.items():
+        picks = {}
+        for lw, sw in spec["masters"].items():
+            lw = int(lw)
+            if ref is not None and ord(ch) in ref_cmap:
+                target = _stroke(*_outline_at(ref, ref_cmap[ord(ch)], {"wght": lw}))
+                lo, hi = wmin - 3 * step, wmax
+                for _ in range(14):  # chia đôi: độ dày nét tăng đơn điệu theo wght
+                    mid = (lo + hi) / 2
+                    if _stroke(*fitted(name, mid)) < target:
+                        lo = mid
+                    else:
+                        hi = mid
+                sw = round((lo + hi) / 2, 1)
+            picks[lw] = sw
+            result[ch][lw] = fitted(name, sw)
+        report.append(f"{ch}:" + "/".join(f"{v:g}" for v in picks.values()))
+    if ref is not None:
+        print(f"    [{spec['name']}] wght nguồn theo nét: " + " ".join(report))
     for ch, ms in result.items():
         shapes = {(len(c), tuple(e)) for c, e, _ in ms.values()}
         if len(shapes) != 1:

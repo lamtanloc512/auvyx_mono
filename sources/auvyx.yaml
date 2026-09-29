@@ -40,6 +40,8 @@ import_glyphs:
     zones:
       source: [-200, 0, 532, 750]                              # descender, baseline, x-height, ascender
       target: [-200, 0, 522, 740]
+    match_stroke: true            # tự chọn wght nguồn cho từng chữ để nét dày bằng chữ Lilex nó thay
+    reference: fonts/Lilex/variable/Lilex-Italic[wght].ttf
     chars: "kljrvwtf łŧţȷ"
     source_names: {f: f}      # f không chân (f.mono của Rec có chân)
 
@@ -51,6 +53,8 @@ import_glyphs:
     zones:
       source: [-200, 0, 532, 750]
       target: [-200, 0, 516, 740]
+    match_stroke: true            # tự chọn wght nguồn cho từng chữ để nét dày bằng chữ Lilex nó thay
+    reference: fonts/Lilex/variable/Lilex[wght].ttf
     chars: "afjtswr ąşţŧȷ"
     source_names: {f: f}      # f.mono của Rec có chân; glyph "f" (ở MONO=1) không chân, cùng độ rộng 600
 
@@ -62,6 +66,8 @@ import_glyphs:
     zones:
       source: [-150, 0, 530, 710]
       target: [-150, 0, 516, 696]
+    match_stroke: true            # tự chọn wght nguồn cho từng chữ để nét dày bằng chữ Lilex nó thay
+    reference: fonts/Lilex/variable/Lilex[wght].ttf
     chars: "oơø"
 
   # --- Chữ in hoa: cùng nguồn với chữ thường, khớp theo cap-height (Lilex: 698) ---
@@ -73,6 +79,8 @@ import_glyphs:
     zones:
       source: [-200, 0, 700, 1000]
       target: [-200, 0, 698, 998]
+    match_stroke: true            # tự chọn wght nguồn cho từng chữ để nét dày bằng chữ Lilex nó thay
+    reference: fonts/Lilex/variable/Lilex[wght].ttf
     chars: "AFJTSWR ĄŞŢŦ"
 
   - name: Geist-caps
@@ -83,6 +91,8 @@ import_glyphs:
     zones:
       source: [-150, 0, 710, 1000]
       target: [-150, 0, 698, 988]
+    match_stroke: true            # tự chọn wght nguồn cho từng chữ để nét dày bằng chữ Lilex nó thay
+    reference: fonts/Lilex/variable/Lilex[wght].ttf
     chars: "OØƠ"
 
   - name: Recursive-italic-caps
@@ -93,6 +103,8 @@ import_glyphs:
     zones:
       source: [-200, 0, 700, 1000]
       target: [-200, 0, 698, 998]
+    match_stroke: true            # tự chọn wght nguồn cho từng chữ để nét dày bằng chữ Lilex nó thay
+    reference: fonts/Lilex/variable/Lilex-Italic[wght].ttf
     chars: "KLJRVWTF ŁŦŢ"
 
 extra_copyright:

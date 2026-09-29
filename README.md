@@ -9,12 +9,12 @@ Auvyx Mono là bản fork của [Lilex](https://github.com/mishamyrt/Lilex) (d�
 - Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định cho bộ đứng. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex. Bộ nghiêng giữ g một tầng gốc.
 - Chữ `x` nghiêng dùng x thẳng (x đứng xiên 9.5°) thay cho x uốn lượn của Lilex.
 - Bộ đứng: `a f j t s w r` + `A F J T S W R` (và ą ş ţ ŧ ȷ Ą Ş Ţ Ŧ) lấy từ Recursive Mono Linear, `f` dùng bản không chân; `o O` (và ơ ø Ơ Ø) lấy từ [Geist Mono](https://github.com/vercel/geist-font) (OFL). Nguồn: `sources/external/`.
-- Bộ nghiêng: `k l j r v w t f` + `K L J R V W T F` (f bản không chân; và ł ŧ ţ ȷ Ł Ŧ Ţ, các chữ có dấu tương ứng) lấy từ [Recursive](https://github.com/arrowtype/recursive) Mono Linear (OFL), khớp độ đậm và chiều cao với Lilex. Nguồn: `sources/external/recursive/`.
+- Bộ nghiêng: `k l j r v w t f` + `K L J R V W T F` (f bản không chân; và ł ŧ ţ ȷ Ł Ŧ Ţ, các chữ có dấu tương ứng) lấy từ [Recursive](https://github.com/arrowtype/recursive) Mono Linear (OFL), khớp chiều cao với Lilex; độ đậm được chọn riêng cho từng chữ (match_stroke) để nét dày bằng chữ Lilex mà nó thay thế. Nguồn: `sources/external/recursive/`.
 
 **Build**
 
 ```sh
-make auvyx          # tạo fonts/AuvyxMono từ font Lilex có sẵn trong fonts/Lilex (cần Python + fonttools, pyyaml, uharfbuzz)
+make auvyx          # tạo fonts/AuvyxMono từ font Lilex có sẵn trong fonts/Lilex (cần Python + fonttools, pyyaml, uharfbuzz, numpy, freetype-py)
 make auvyx-build    # build Lilex từ source (.glyphs) rồi tạo build/AuvyxMono (cần: make configure)
 make auvyx-install  # cài Auvyx Mono (variable) vào ~/Library/Fonts
 ```
