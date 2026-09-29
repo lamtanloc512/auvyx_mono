@@ -22,11 +22,12 @@ python3 scripts/sync_font.py ..
 
 Script sẽ copy webfont, tạo lại file tải về `public/download/AuvyxMono.zip`, bảng ký tự `src/data/glyphs.json` và ảnh chia sẻ `public/og.png`.
 
-## Trước khi deploy
+## Deploy
 
-- Đổi `url` trong `src/config.ts` và dòng `Sitemap:` trong `public/robots.txt` thành domain thật.
-- Điền link GitHub vào `repo` trong `src/config.ts`.
-- Deploy thư mục `dist/` lên Cloudflare Pages, Netlify, Vercel hoặc GitHub Pages (build command: `npm run build`, output: `dist`).
+Tự động: mỗi lần push lên nhánh `main`, GitHub Actions (`.github/workflows/ci.yaml`) build font + trang và deploy lên
+GitHub Pages tại https://lamtanloc512.github.io/auvyx-mono/. `robots.txt` và sitemap được tạo tự động theo `src/config.ts`.
+
+Dùng domain riêng: đổi `url` thành domain của bạn và `base` thành `"/"` trong `src/config.ts`, thêm file `public/CNAME`.
 
 ## Cấu trúc
 
@@ -40,7 +41,7 @@ src/
 public/
   fonts/               webfont variable (woff2)
   download/            file zip tải về
-  og.png, favicon.svg, robots.txt
+  og.png, favicon.svg
 ```
 
 Mã nguồn trang web: MIT. Font: SIL Open Font License 1.1.

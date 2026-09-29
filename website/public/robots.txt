@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://auvyxmono.com/sitemap-index.xml

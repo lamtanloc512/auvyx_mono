@@ -1,36 +1,82 @@
-name: Build
+name: Build & deploy
+
+# push nhánh bất kỳ  → kiểm tra build font + website
+# push nhánh main    → deploy website lên GitHub Pages (https://lamtanloc512.github.io/auvyx-mono/)
+# push tag v*        → tạo GitHub Release kèm file AuvyxMono-<tag>.zip
 
 on:
   push:
     branches: ["**"]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
-      - uses: actions/setup-node@v6
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: website/package-lock.json
       - name: Install Python dependencies
         run: pip install fonttools brotli pyyaml uharfbuzz numpy freetype-py pillow
       - name: Build Auvyx Mono
         run: make auvyx
       - name: Build website
         run: |
-          make website-configure
-          make website-fonts
-          make website-build
-      - uses: actions/upload-artifact@v7
+          cd website
+          npm ci
+          python3 scripts/sync_font.py ..
+          npm run build
+      - name: Package fonts
+        run: |
+          mkdir -p dist
+          cp OFL.txt fonts/AuvyxMono/
+          cd fonts && zip -qr ../dist/AuvyxMono.zip AuvyxMono
+      - uses: actions/upload-artifact@v4
         with:
           name: AuvyxMono
-          path: fonts/AuvyxMono/
-      - uses: actions/upload-artifact@v7
+          path: dist/AuvyxMono.zip
+      - uses: actions/upload-pages-artifact@v3
         with:
-          name: website
-          path: website/dist/
+          path: website/dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - id: pages
+        uses: actions/deploy-pages@v4
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: AuvyxMono
+      - run: mv AuvyxMono.zip "AuvyxMono-${GITHUB_REF_NAME}.zip"
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: AuvyxMono-*.zip
+          generate_release_notes: true

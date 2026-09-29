@@ -4,6 +4,12 @@
 
 # Auvyx Mono
 
+[![Build & deploy](https://github.com/lamtanloc512/auvyx-mono/actions/workflows/ci.yaml/badge.svg)](https://github.com/lamtanloc512/auvyx-mono/actions/workflows/ci.yaml)
+[![Release](https://img.shields.io/github/v/release/lamtanloc512/auvyx-mono)](https://github.com/lamtanloc512/auvyx-mono/releases/latest)
+[![License: OFL 1.1](https://img.shields.io/badge/license-OFL%201.1-blue)](OFL.txt)
+
+**[Website](https://lamtanloc512.github.io/auvyx-mono/)** · **[Download](https://github.com/lamtanloc512/auvyx-mono/releases/latest)** · **[Try it](https://lamtanloc512.github.io/auvyx-mono/#tester)**
+
 Auvyx Mono is a free, open-source monospaced typeface for code. Calm, legible and a little bit warm — with
 seven weights from Thin to Bold, true italics, programming ligatures, 1,073 characters and careful Vietnamese
 support. Available as static TTF/OTF, variable TTF and WOFF2.
@@ -24,7 +30,7 @@ support. Available as static TTF/OTF, variable TTF and WOFF2.
 
 ## Install
 
-Download the latest release (or build it yourself, see below), then:
+Download the [latest release](https://github.com/lamtanloc512/auvyx-mono/releases/latest) (or build it yourself, see below), then:
 
 - **macOS** — open `variable/`, select both `.ttf` files, double-click → *Install Font*.
 - **Windows** — select both `.ttf` files in `variable/`, right-click → *Install for all users*.
@@ -59,6 +65,15 @@ make website-fonts       # copy the freshly built fonts into the site
 make website-serve       # http://localhost:4321
 make website-build       # → website/dist
 make video               # → website/video/auvyx-mono-intro.mp4
+```
+
+## Releasing
+
+Every push to `main` builds the fonts and deploys the website to GitHub Pages. To publish a release with a
+downloadable zip, push a tag:
+
+```sh
+git tag v1.0.0 && git push origin v1.0.0
 ```
 
 ## Credits & license

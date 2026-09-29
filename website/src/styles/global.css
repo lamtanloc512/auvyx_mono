@@ -1,18 +1,3 @@
-@font-face {
-  font-family: "Auvyx Mono";
-  src: url("/fonts/AuvyxMono-Variable.woff2") format("woff2");
-  font-weight: 100 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Auvyx Mono";
-  src: url("/fonts/AuvyxMono-Italic-Variable.woff2") format("woff2");
-  font-weight: 100 700;
-  font-style: italic;
-  font-display: swap;
-}
-
 :root {
   --font: "Auvyx Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --maxw: 1180px;

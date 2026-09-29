@@ -6,4 +6,4 @@ Auvyx Mono is a free monospaced typeface for code: seven weights, true italics, 
 npm install auvyx-mono
 ```
 
-Webfonts are in `AuvyxMono/webfonts/`. More information: [https://github.com/OWNER/auvyx-mono](https://github.com/OWNER/auvyx-mono).
+Webfonts are in `AuvyxMono/webfonts/`. More information: [https://github.com/lamtanloc512/auvyx-mono](https://github.com/lamtanloc512/auvyx-mono).

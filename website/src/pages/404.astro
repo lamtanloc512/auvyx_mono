@@ -1,13 +1,14 @@
 ---
 import Base from "../layouts/Base.astro";
 import Nav from "../components/Nav.astro";
+import { withBase } from "../config";
 ---
 <Base title="Page not found — Auvyx Mono">
   <Nav />
   <main class="wrap nf">
     <p class="eyebrow">404</p>
     <h1>This page -> /dev/null</h1>
-    <p><a href="/">Back to Auvyx Mono</a></p>
+    <p><a href={withBase()}>Back to Auvyx Mono</a></p>
   </main>
 </Base>
 <style>
