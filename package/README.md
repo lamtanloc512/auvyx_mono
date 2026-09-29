@@ -1,5 +1,9 @@
-# Lilex
+# Auvyx Mono
 
-Lilex is an extended font on top of [IBM Plex Mono](https://github.com/IBM/plex) designed for developers. It contains ligatures, special characters (e.g. PowerLine), Greek and exists in a variable format.
+Auvyx Mono is a free monospaced typeface for code: seven weights, true italics, ligatures and Vietnamese support.
 
-More information is available in [the repository](https://github.com/mishamyrt/Lilex).
+```sh
+npm install auvyx-mono
+```
+
+Webfonts are in `AuvyxMono/webfonts/`. More information: [https://github.com/OWNER/auvyx-mono](https://github.com/OWNER/auvyx-mono).

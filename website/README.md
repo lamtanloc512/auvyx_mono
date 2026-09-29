@@ -1,6 +1,6 @@
 # Auvyx Mono — website
 
-Trang giới thiệu font Auvyx Mono (repo font: `../auvyx_mono`). Viết bằng [Astro](https://astro.build): xuất ra HTML tĩnh, gần như không có JavaScript, tốt cho SEO và tốc độ tải.
+Trang giới thiệu font Auvyx Mono (nằm trong thư mục `website/` của repo font). Viết bằng [Astro](https://astro.build): xuất ra HTML tĩnh, gần như không có JavaScript, tốt cho SEO và tốc độ tải.
 
 ## Chạy
 
@@ -13,11 +13,11 @@ npm run preview   # xem bản build
 
 ## Cập nhật font
 
-Khi font thay đổi (sau `make auvyx` trong repo `auvyx_mono`):
+Khi font thay đổi (sau `make auvyx` ở thư mục gốc repo):
 
 ```sh
 pip install fonttools brotli pillow freetype-py uharfbuzz
-python3 scripts/sync_font.py ../auvyx_mono
+python3 scripts/sync_font.py ..
 ```
 
 Script sẽ copy webfont, tạo lại file tải về `public/download/AuvyxMono.zip`, bảng ký tự `src/data/glyphs.json` và ảnh chia sẻ `public/og.png`.
@@ -62,8 +62,8 @@ Kịch bản (mọi thay đổi trên hình rơi đúng một nốt nhạc có t
 
 ```sh
 pip install numpy pillow fonttools freetype-py uharfbuzz   # cần thêm ffmpeg
-python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
-python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/frame --preview 3 20.5 48.6
+python3 video/intro.py --fonts ../fonts/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
+python3 video/intro.py --fonts ../fonts/AuvyxMono/variable --out video/frame --preview 3 20.5 48.6
 ```
 
 Các file: `video/music.py` (dựng nhạc, reverb, ritardando, tìm nốt), `video/intro.py` (kịch bản), `video/outline.py` (vẽ đường cong glyph), `video/fx.py` (camera, bloom, grain, vignette), `video/engine.py` (vẽ chữ).

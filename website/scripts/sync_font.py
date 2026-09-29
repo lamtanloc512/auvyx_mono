@@ -6,7 +6,7 @@
 - Tạo src/data/glyphs.json (danh sách ký tự để hiển thị bảng glyph)
 - Tạo public/og.png (ảnh chia sẻ mạng xã hội, render bằng chính font)
 
-Dùng:  python3 scripts/sync_font.py [đường dẫn tới repo auvyx_mono]
+Dùng:  python3 scripts/sync_font.py [đường dẫn tới repo font, mặc định: ..]
 Cần:   pip install fonttools brotli pillow freetype-py uharfbuzz
 """
 
@@ -22,7 +22,7 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parent.parent
-FONT_REPO = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT.parent / "auvyx_mono"
+FONT_REPO = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT.parent  # repo font = thư mục cha của website/
 SRC = FONT_REPO / "fonts" / "AuvyxMono"
 
 GROUPS = [

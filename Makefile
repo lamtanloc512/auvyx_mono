@@ -78,8 +78,9 @@ release: build ## release the font
 	@cp -r $(BUILD_DIR) $(RELEASE_DIR)
 
 .PHONY: npm-package
-npm-package:
-	@cp -r $(RELEASE_DIR)/* $(NPM_PACKAGE_DIR)/
+npm-package: ## copy Auvyx Mono into the npm package folder
+	@rm -rf $(NPM_PACKAGE_DIR)/AuvyxMono
+	@cp -r $(RELEASE_DIR)/AuvyxMono $(NPM_PACKAGE_DIR)/
 
 define build-font
 	@rm -rf $(BUILD_DIR)/$(1)
@@ -146,38 +147,31 @@ scripts-lint-fix: ## lint scripts and autofix errors
 scripts-format: ## format scripts
 	@uv tool run ruff format $(SCRIPTS_DIR)/
 
-# Website
+# Website (Astro, trong website/)
 
 .PHONY: website-configure
 website-configure: ## setup website environment
-	@cd $(WEBSITE_DIR); pnpm install
+	@cd $(WEBSITE_DIR); npm install
+
+.PHONY: website-fonts
+website-fonts: ## copy Auvyx Mono webfonts, download zip, glyph list and OG image into the website
+	@cd $(WEBSITE_DIR); python3 scripts/sync_font.py ..
 
 .PHONY: website-serve
-website-serve: _website-env ## run the website
-	@cd $(WEBSITE_DIR); pnpm run dev
+website-serve: ## run the website (http://localhost:4321)
+	@cd $(WEBSITE_DIR); npm run dev
 
 .PHONY: website-build
-website-build: _website-env ## build the website
-	@cd $(WEBSITE_DIR); pnpm run build
+website-build: ## build the website into website/dist
+	@cd $(WEBSITE_DIR); npm run build
 
 .PHONY: website-print-updates
 website-print-updates: ## print list of outdated packages
-	@cd $(WEBSITE_DIR); pnpm outdated
+	@cd $(WEBSITE_DIR); npm outdated
 
-.PHONY: website-lint
-website-lint: ## check preview website code quality
-	@cd $(WEBSITE_DIR); pnpm lint
-
-.PHONY: website-format
-website-format: ## format preview website code
-	@cd $(WEBSITE_DIR); pnpm format
-
-.PHONY: _website-env
-_website-env:
-	uv run $(SCRIPTS_DIR)/website_env.py \
-		generate \
-		$(BUILD_DIR)/Lilex/ttf/Lilex-Regular.ttf \
-		$(WEBSITE_DIR)/.env
+.PHONY: video
+video: ## render the Auvyx Mono intro video (website/video/auvyx-mono-intro.mp4)
+	@cd $(WEBSITE_DIR); python3 video/intro.py --fonts ../$(RELEASE_DIR)/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
 
 # Install
 

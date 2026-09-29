@@ -7,7 +7,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "fonts": "python3 scripts/sync_font.py ../auvyx_mono"
+    "fonts": "python3 scripts/sync_font.py .."
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

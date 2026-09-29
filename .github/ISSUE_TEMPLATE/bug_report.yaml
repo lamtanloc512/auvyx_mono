@@ -4,13 +4,13 @@ body:
 - type: markdown
   attributes:
     value: |
-      Please make sure to [search for existing issues](https://github.com/mishamyrt/Lilex/issues) before filing a new one!
+      Please make sure to [search for existing issues](https://github.com/OWNER/auvyx-mono/issues) before filing a new one!
 
 - type: input
   id: version
   attributes:
-    label: Lilex font version
-    placeholder: "2.530, 2.500"
+    label: Auvyx Mono version
+    placeholder: "1.0.0"
   validations:
     required: true
 
@@ -38,7 +38,7 @@ body:
   id: software
   attributes:
     label: Other Software
-    description: If you're reporting a bug about Lilex's interaction with other software, what software? What versions?
+    description: If you're reporting a bug about Auvyx Mono's interaction with other software, what software? What versions?
     placeholder: |
       iTerm2
       VS Code

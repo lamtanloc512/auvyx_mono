@@ -1,19 +1,21 @@
 {
-  "name": "lilex-font",
-  "version": "2.7.0",
+  "name": "auvyx-mono",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mishamyrt/Lilex.git"
+    "url": "git+https://github.com/OWNER/auvyx-mono.git"
   },
-  "description": "",
+  "description": "Auvyx Mono — a monospaced typeface for code",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
   	"font",
-   	"ligatures"
+   	"ligatures",
+    "monospace",
+    "programming"
   ],
-  "author": "mishamyrt",
-  "license": "OFL",
+  "author": "Ethan Lam",
+  "license": "OFL-1.1",
   "type": "module"
 }

@@ -1,7 +1,7 @@
 [project]
-name = "Lilex"
-authors = [{ name = "Mikhael Khrustik", email = "misha@myrt.co" }]
-description = "The font for developers."
+name = "auvyx-mono"
+authors = [{ name = "Ethan Lam" }, { name = "Mikhael Khrustik (Lilex)", email = "misha@myrt.co" }]
+description = "Auvyx Mono — a monospaced typeface for code (fork of Lilex)."
 readme = "README.md"
 requires-python = ">=3.13"
 version = "v0.0.0"

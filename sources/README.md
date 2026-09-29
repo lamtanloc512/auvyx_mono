@@ -1,3 +1,5 @@
+> **Auvyx Mono:** these are the upstream Lilex sources (names kept on purpose so upstream changes can be merged). Auvyx-specific changes are applied on top by `scripts/auvyx.py` using [`auvyx.yaml`](./auvyx.yaml).
+
 # Lilex Sources
 
 This directory contains the source files for the Lilex font family. Source files heavily rely on [`lilexgen`](../scripts/lilexgen) library and code generation. The generation parameters are described in the [`lilexgen_config.yaml`](./lilexgen_config.yaml) file.

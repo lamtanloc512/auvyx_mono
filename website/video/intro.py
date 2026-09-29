@@ -2,7 +2,7 @@
 """Video giới thiệu Auvyx Mono.
 
 Dùng:
-    python3 video/intro.py --fonts ../auvyx_mono/fonts/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
+    python3 video/intro.py --fonts ../fonts/AuvyxMono/variable --out video/auvyx-mono-intro.mp4
     python3 video/intro.py ... --preview 3 20.5 48.6    # chỉ xuất vài khung hình PNG
     # máy chậm / giới hạn thời gian: render từng phần rồi ghép
     python3 video/intro.py ... --work build/ --part 0/3   (1/3, 2/3)  rồi  --work build/ --assemble

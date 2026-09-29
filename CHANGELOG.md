@@ -1,6 +1,27 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to Auvyx Mono are documented in this file.
+
+## [1.0.0] — September 29, 2026
+
+First release of Auvyx Mono, a fork of Lilex 2.700.
+
+### Changed
+
+- Family renamed to **Auvyx Mono**; tighter 590-unit cell (was 600).
+- Upright `a f j t s w r A F J T S W R` from Recursive Mono Linear (`f` without foot), `o O ơ ø Ơ Ø` from Geist Mono.
+- Italic `k l j r v w t f K L J R V W T F` from Recursive Mono Linear; straight italic `x`.
+- Single-storey `g` (former `cv02`) is the default in the upright; `cv02` now restores the double-storey `g`.
+- Borrowed glyphs are weight-matched per glyph by stroke thickness across all weights.
+
+### Added
+
+- Website (`website/`) and intro video (`website/video/`).
+
+---
+
+*Below: changelog of the upstream project, [Lilex](https://github.com/mishamyrt/Lilex).*
+
 
 ## Next
 

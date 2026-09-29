@@ -8,7 +8,7 @@
 ## PR Checklist
 * [ ] Closes #xxx
 * [ ] Requires CHANGELOG.md to be updated
-* [ ] Requires [/images/](/mishamyrt/Lilex/images/) to be updated
+* [ ] Requires [/images/](/images/) to be updated
 
 <!-- Provide a more detailed description of the PR, other things fixed or any additional comments/features here -->
 ## Detailed Description of the Pull Request / Additional comments

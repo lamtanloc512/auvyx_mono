@@ -1,156 +1,79 @@
+<p align="center">
+  <img src="./images/hero.png" alt="Auvyx Mono — a monospaced typeface for code" width="720">
+</p>
+
 # Auvyx Mono
 
-Auvyx Mono là bản fork của [Lilex](https://github.com/mishamyrt/Lilex) (dựa trên IBM Plex Mono), phát hành theo SIL Open Font License 1.1.
+Auvyx Mono is a free, open-source monospaced typeface for code. Calm, legible and a little bit warm — with
+seven weights from Thin to Bold, true italics, programming ligatures, 1,073 characters and careful Vietnamese
+support. Available as static TTF/OTF, variable TTF and WOFF2.
 
-**Khác biệt so với Lilex**
-
-- Tên họ font: `Auvyx Mono` (file `AuvyxMono-*.ttf`)
-- Khoảng cách ký tự khít hơn: ô monospace 590 thay vì 600 (`cell_width` trong `sources/auvyx.yaml`).
-- Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định cho bộ đứng. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex. Bộ nghiêng giữ g một tầng gốc.
-- Chữ `x` nghiêng dùng x thẳng (x đứng xiên 9.5°) thay cho x uốn lượn của Lilex.
-- Bộ đứng: `a f j t s w r` + `A F J T S W R` (và ą ş ţ ŧ ȷ Ą Ş Ţ Ŧ) lấy từ Recursive Mono Linear, `f` dùng bản không chân; `o O` (và ơ ø Ơ Ø) lấy từ [Geist Mono](https://github.com/vercel/geist-font) (OFL). Nguồn: `sources/external/`.
-- Bộ nghiêng: `k l j r v w t f` + `K L J R V W T F` (f bản không chân; và ł ŧ ţ ȷ Ł Ŧ Ţ, các chữ có dấu tương ứng) lấy từ [Recursive](https://github.com/arrowtype/recursive) Mono Linear (OFL), khớp chiều cao với Lilex; độ đậm được chọn riêng cho từng chữ (match_stroke) để nét dày bằng chữ Lilex mà nó thay thế. Nguồn: `sources/external/recursive/`.
-
-**Build**
-
-```sh
-make auvyx          # tạo fonts/AuvyxMono từ font Lilex có sẵn trong fonts/Lilex (cần Python + fonttools, pyyaml, uharfbuzz, numpy, freetype-py)
-make auvyx-build    # build Lilex từ source (.glyphs) rồi tạo build/AuvyxMono (cần: make configure)
-make auvyx-install  # cài Auvyx Mono (variable) vào ~/Library/Fonts
-```
-
-Cấu hình tên và biến thể mặc định nằm trong [`sources/auvyx.yaml`](sources/auvyx.yaml).
-
-**Cập nhật từ Lilex gốc**
-
-```sh
-git fetch upstream
-git merge upstream/master
-make auvyx
-```
-
----
-
-*README gốc của Lilex ở dưới.*
-
-<p align="center">
-    <img
-        src="./images/logo.svg"
-        alt="Lilex. The font for developers."
-        width="362px"><br/>
-    <a href="https://github.com/mishamyrt/Lilex/actions/workflows/qa.yaml">
-        <img src="https://github.com/mishamyrt/Lilex/actions/workflows/qa.yaml/badge.svg" alt="Quality Assurance"/>
-    </a>
-    <a href="https://github.com/mishamyrt/Lilex/releases/latest">
-        <img src="https://img.shields.io/github/v/tag/mishamyrt/Lilex?sort=semver" alt="Version"/>
-    </a>
-<p>
-<hr>
-
-Lilex is an extended font on top of [IBM Plex Mono](https://github.com/IBM/plex) designed for developers. It contains ligatures, special characters (e.g. PowerLine), Greek and exists in a variable format.
-
-Ligatures is just a font rendering feature: underlying code remains ASCII-compatible. This makes it easier to read and understand the code. In some cases, the ligatures connect closely related characters (`==`, `---`), while in others they optically align the glyphs (`..`, `??`).
-
-Compiled versions are available under [releases](https://github.com/mishamyrt/Lilex/releases). Bleeding edge builds can be downloaded in the [build](https://github.com/mishamyrt/Lilex/actions/workflows/build.yaml) workflow artifacts.
-
-## Installation
-
-1. [Download font](https://github.com/mishamyrt/Lilex/releases/latest).
-2. Unzip the archive.
-3. Install the font:
-   - Mac: Select all font files in the `variable` folder and double-click them. Click the `Install Font` button.
-   - Windows: Select all font files in the `variable` folder, right-click any of them, then click `Install` from the menu.
- 
-### Zed
-
-By default, Zed uses the Lilex font (as an alias for ZedMono), but it doesn't let you use the version of the font installed on your system.
-
-This means that even if you install the latest version of the font on your system, it will only update in Zed once the developers include it in a new release.
-
-If this is an issue for you too, let the developers know in [the issue](https://github.com/zed-industries/zed/issues/52987).
-
-### Visual Studio Code
-
-1. From the `Code` menu (`File` on Windows) go to `Preferences` → `Settings`, or use keyboard shortcut <kbd>⌘</kbd>+<kbd>,</kbd> (<kbd>Ctrl</kbd>+<kbd>,</kbd> on Windows).
-2. In the `Editor: Font Family` input box type `Lilex`.
-3. To enable ligatures, go to `Editor: Font Ligatures`, click `Edit in settings.json`, and copy `"editor.fontLigatures": true` into file.
-
-If you want to enable stylistic sets, list them instead of `true`. Like:
-
-```json
-"editor.fontLigatures": "'calt', 'ss02', 'ss04'"
-```
-
-### Cursor
-
-Same as Visual Studio Code, but menu `Settings` → `VS Code Settings`
-
-### iTerm2
-
-1. From the `iTerm2` menu go to `Settings`. Under `Profiles`, find the `Text` tab.
-2. If you have more than one profile, select the one you want to change. Or change the default one (with an asterisk).
-3. Click on the font name under the 'Font' heading, find `Lilex` and select it.
-
-### Ghostty
-
-1. From the `Ghostty` menu go to `Settings…`, or use keyboard shortcut <kbd>⌘</kbd>+<kbd>,</kbd>.
-2. Add `font-family = Lilex` to config file.
-3. Restart Ghostty (or reload configuration with <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd>)
-
-## Weight
-
-There are 5 font weights available in Lilex, ranging from Thin to Bold. In addition, a variable font is available.
-
-<img src="./images/styles@2x.png">
-
-## Italics
-
-Lilex comes with a full set of italics: all weights, ligatures, PowerLine. Lilex Italic can do everything that Lilex does.
-
-<img src="./images/italics@2x.png">
-
-## Character Set
-
-The font has support for Latin, Cyrillic and Greek. It also includes ligatures and powerline symbols.
-
-<img src="./images/character-set@2x.png">
-
-A full glyph table can be found on the [preview page](https://mishamyrt.github.io/Lilex/).
+<p align="center"><img src="./images/weights.png" alt="Seven weights, upright and italic" width="100%"></p>
+<p align="center"><img src="./images/code.png" alt="Auvyx Mono in code" width="100%"></p>
 
 ## Features
 
-Lilex supports a wide range of OpenType features, allowing it to be used for various formats.
+- **7 weights + variable font** — `wght` 100–700, upright and italic.
+- **True italics** — single-storey `a` and `g`, flowing `k l j r v w t f`, a straight quiet `x`.
+- **Ligatures** — `=> != === |> :: && <= /* */ <!--` … turn them off with `calt` if you prefer.
+- **Character variants** — slashed/plain/backslashed zero, double-storey `g`, high asterisk, curvier parentheses and more (`cv02 cv04 cv06 cv08–cv11 cv13–cv15 zero ss01–ss04`).
+- **Languages** — Latin (incl. Vietnamese), Greek and Cyrillic; box drawing and Powerline symbols.
+- **Comfortable spacing** — a slightly tighter 590-unit cell.
 
-<img src="./images/features@2x.png">
-    
-The font has additional styles for some characters, so it can be configured to better fit your needs. Instructions on how to activate OpenType features in your IDE can be found on the internet.
+<p align="center"><img src="./images/specimen.png" alt="Specimen: Lorem ipsum and Vietnamese text" width="100%"></p>
 
-<img src="./images/alternatives@2x.png">
+## Install
 
-Some ligatures also have additional options. For example, certain arrows are initially switched off to avoid conflicts with logical operations.
+Download the latest release (or build it yourself, see below), then:
 
-<img src="./images/alt_ligatures@2x.png">
+- **macOS** — open `variable/`, select both `.ttf` files, double-click → *Install Font*.
+- **Windows** — select both `.ttf` files in `variable/`, right-click → *Install for all users*.
+- **Linux** — copy the `.ttf` files to `~/.local/share/fonts` and run `fc-cache -f`.
 
-### Arrows
+Editor setup, e.g. VS Code:
 
-Lilex uses generated ligatures for arrows, so they can be infinite. Combine that to assemble your unique arrows.
+```json
+"editor.fontFamily": "'Auvyx Mono', monospace",
+"editor.fontLigatures": true
+```
 
-There is also a full set of single-character arrows (`↑`, `↓`, etc.) in the font.
+## Build
 
-<img src="./images/arrows@2x.png">
+```sh
+make auvyx            # build fonts/AuvyxMono from the prebuilt base fonts (Python + fonttools, pyyaml, uharfbuzz, numpy, freetype-py)
+make auvyx-install    # install the variable fonts on macOS
+make configure && make auvyx-build   # full build from the .glyphs sources
+```
 
-## Development
+All Auvyx-specific changes (family name, cell width, default alternates, borrowed glyphs, weight matching) are
+declared in [`sources/auvyx.yaml`](sources/auvyx.yaml) and applied by [`scripts/auvyx.py`](scripts/auvyx.py).
 
-If you want to make improvements to the project, see [CONTRIBUTING.md](CONTRIBUTING.md).
+## Website & video
 
-## License
+The website lives in [`website/`](website) (Astro, static, SEO-ready). The intro video is rendered from code in
+[`website/video/`](website/video).
 
-Lilex typeface is available under the [OFL-1.1 License](https://github.com/mishamyrt/Lilex/blob/master/OFL.txt) and can be used free of charge, for both commercial and non-commercial purposes.
+```sh
+make website-configure   # npm install
+make website-fonts       # copy the freshly built fonts into the site
+make website-serve       # http://localhost:4321
+make website-build       # → website/dist
+make video               # → website/video/auvyx-mono-intro.mp4
+```
 
-The source code is available under [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0).
+## Credits & license
 
-## Credits
+Auvyx Mono is released under the [SIL Open Font License 1.1](OFL.txt).
 
-- Author: Mikhael Khrustik
-- Based on: [IBM Plex Mono](https://github.com/IBM/plex)
-- Inspired by: [Fira Code](https://github.com/tonsky/FiraCode)
+It is a modified version of [Lilex](https://github.com/mishamyrt/Lilex) by Mikhael Khrustik, itself based on
+[IBM Plex Mono](https://github.com/IBM/plex). Some letters come from [Recursive](https://github.com/arrowtype/recursive)
+(Arrow Type) and [Geist Mono](https://github.com/vercel/geist-font) (Vercel), both under the OFL.
+See [OFL.txt](OFL.txt) and [AUTHORS](AUTHORS) for the full copyright notices.
+
+Internal source file names (`sources/Lilex/*.glyphs`, `lilexgen`) are kept unchanged so upstream improvements
+can still be merged:
+
+```sh
+git remote add upstream https://github.com/mishamyrt/Lilex   # if not already added
+git fetch upstream && git merge upstream/master && make auvyx
+```

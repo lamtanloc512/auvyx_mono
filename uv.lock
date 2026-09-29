@@ -631,7 +631,7 @@ wheels = [
 ]
 
 [[package]]
-name = "lilex"
+name = "auvyx-mono"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [

@@ -7,7 +7,7 @@ export const SITE = {
   description:
     "Auvyx Mono is a free, open-source monospaced font for developers. Seven weights from Thin to Bold, true italics, programming ligatures, full Vietnamese support, and a variable font. Licensed under the SIL Open Font License.",
   author: "Ethan Lam",
-  repo: "https://github.com/", // TODO: link repo GitHub của Auvyx Mono
+  repo: "https://github.com/OWNER/auvyx-mono", // TODO: đổi OWNER thành tài khoản GitHub của bạn
   download: "/download/AuvyxMono.zip",
   version: "1.0",
 };
