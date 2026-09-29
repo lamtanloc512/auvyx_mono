@@ -14,4 +14,10 @@ vendor_url: ""              # để trống = xoá URL vendor của Lilex
 # Bật lại feature đó trong editor sẽ trả về glyph gốc của Lilex.
 # Xem danh sách trong sources/opentype_features/cv*.fea, ss*.fea, zero.fea
 default_features:
-  - cv02   # Open g (g một tầng, đuôi mở)
+  upright:
+    - cv02   # Open g (g một tầng, đuôi mở)
+  italic: []  # bộ nghiêng của Lilex vốn đã dùng g một tầng
+
+# Glyph nghiêng được thay bằng glyph đứng xiên theo góc nghiêng (9.5°)
+italic_from_upright:
+  - x      # bỏ chữ x uốn lượn, dùng x thẳng

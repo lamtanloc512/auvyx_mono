@@ -14,8 +14,16 @@ import shutil
 import sys
 from pathlib import Path
 
+import copy
+import math
+
 import yaml
 from fontTools import ttLib
+from fontTools.pens.boundsPen import BoundsPen
+from fontTools.pens.t2CharStringPen import T2CharStringPen
+from fontTools.pens.transformPen import TransformPen
+from fontTools.ttLib.tables import ttProgram
+from fontTools.varLib.iup import iup_delta
 
 FONT_EXTENSIONS = {".ttf", ".otf", ".woff", ".woff2"}
 PS_NAME_IDS = {3, 6, 20, 25}
@@ -72,6 +80,85 @@ def make_default(font: ttLib.TTFont, tag: str) -> int:
     return changed
 
 
+def is_italic(font: ttLib.TTFont) -> bool:
+    return bool(font["OS/2"].fsSelection & 1) or font["post"].italicAngle != 0
+
+
+def upright_partner(path: Path) -> Path | None:
+    """Lilex-BoldItalic.ttf → Lilex-Bold.ttf, Lilex-Italic.ttf → Lilex-Regular.ttf."""
+    stem = path.stem
+    if "-Italic[" in stem:
+        stem = stem.replace("-Italic", "")
+    elif stem.endswith("-Italic"):
+        stem = stem[: -len("Italic")] + "Regular"
+    elif stem.endswith("Italic"):
+        stem = stem[: -len("Italic")]
+    else:
+        return None
+    partner = path.with_name(stem + path.suffix)
+    return partner if partner.exists() else None
+
+
+def _center(font: ttLib.TTFont, name: str) -> float:
+    pen = BoundsPen(font.getGlyphSet())
+    font.getGlyphSet()[name].draw(pen)
+    x0, _, x1, _ = pen.bounds
+    return (x0 + x1) / 2
+
+
+def slant_from_upright(italic: ttLib.TTFont, upright: ttLib.TTFont, name: str) -> None:
+    """Thay glyph nghiêng bằng glyph đứng được xiên theo italicAngle."""
+    t = math.tan(math.radians(-italic["post"].italicAngle))
+    target_center = _center(italic, name)
+
+    if "glyf" in italic:
+        src = copy.deepcopy(upright["glyf"][name])
+        if src.isComposite():
+            raise SystemExit(f"'{name}' là glyph ghép, chưa hỗ trợ")
+        coords = src.coordinates
+        for i, (x, y) in enumerate(coords):
+            coords[i] = (x + t * y, y)
+        src.recalcBounds(upright["glyf"])
+        dx = round(target_center - (src.xMin + src.xMax) / 2)
+        for i, (x, y) in enumerate(coords):
+            coords[i] = (round(x + dx), y)
+        src.program = ttProgram.Program()
+        src.program.fromBytecode(b"")
+        italic["glyf"][name] = src
+        src.recalcBounds(italic["glyf"])
+        italic["hmtx"][name] = (upright["hmtx"][name][0], src.xMin)
+
+        if "gvar" in italic and "gvar" in upright:
+            base = upright["glyf"][name]
+            ucoords = list(base.coordinates)
+            ends = list(base.endPtsOfContours)
+            new_vars = []
+            for var in upright["gvar"].variations.get(name, []):
+                v = copy.deepcopy(var)
+                pts = v.coordinates[: len(ucoords)]
+                phantom = v.coordinates[len(ucoords):]
+                if any(p is None for p in pts):
+                    pts = iup_delta(pts, ucoords, ends)
+                sheared = [(round(ddx + t * ddy), ddy) for ddx, ddy in pts]
+                phantom = [p if p is not None else (0, 0) for p in phantom]
+                v.coordinates = sheared + phantom
+                new_vars.append(v)
+            italic["gvar"].variations[name] = new_vars
+    elif "CFF " in italic:
+        top = italic["CFF "].cff.topDictIndex[0]
+        width = upright["hmtx"][name][0]
+        pen = T2CharStringPen(width, None)
+        bpen = BoundsPen(None)
+        upright.getGlyphSet()[name].draw(TransformPen(bpen, (1, 0, t, 1, 0, 0)))
+        x0, _, x1, _ = bpen.bounds
+        dx = round(target_center - (x0 + x1) / 2)
+        upright.getGlyphSet()[name].draw(TransformPen(pen, (1, 0, t, 1, dx, 0)))
+        top.CharStrings[name] = pen.getCharString(private=top.Private, globalSubrs=italic["CFF "].cff.GlobalSubrs)
+        italic["hmtx"][name] = (width, round(x0 + dx))
+    else:
+        raise SystemExit("Định dạng outline không hỗ trợ")
+
+
 def rename(font: ttLib.TTFont, cfg: dict) -> None:
     src, fam, ps = cfg["source_family"], cfg["family"], cfg["postscript"]
     name = font["name"]
@@ -124,8 +211,22 @@ def process(source_dir: Path, target_dir: Path, cfg: dict) -> None:
             shutil.copy2(item, dest)
             continue
         font = ttLib.TTFont(str(item))
+        italic = is_italic(font)
+        notes = []
+        feats = cfg.get("default_features", {})
+        if isinstance(feats, list):
+            feats = {"upright": feats, "italic": feats}
+        for t in feats.get("italic" if italic else "upright", []) or []:
+            notes.append(f"{t}:{make_default(font, t)}")
+        if italic and cfg.get("italic_from_upright"):
+            partner = upright_partner(item)
+            if partner is None:
+                sys.exit(f"Không tìm thấy bản đứng tương ứng cho {item.name}")
+            upright = ttLib.TTFont(str(partner))
+            for g in cfg["italic_from_upright"]:
+                slant_from_upright(font, upright, g)
+                notes.append(f"{g}←{partner.name}")
         rename(font, cfg)
-        notes = [f"{t}:{make_default(font, t)}" for t in cfg.get("default_features", [])]
         font.save(str(dest))
         print(f"  {rel} → {dest.relative_to(target_dir)}  [{' '.join(notes)}]")
 

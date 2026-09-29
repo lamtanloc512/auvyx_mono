@@ -5,7 +5,8 @@ Auvyx Mono là bản fork của [Lilex](https://github.com/mishamyrt/Lilex) (d�
 **Khác biệt so với Lilex**
 
 - Tên họ font: `Auvyx Mono` (file `AuvyxMono-*.ttf`)
-- Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex.
+- Chữ `g` một tầng (cv02 — Open g) được gắn cứng làm mặc định cho bộ đứng. Bật `cv02` trong editor sẽ trả về chữ g gốc của Lilex. Bộ nghiêng giữ g một tầng gốc.
+- Chữ `x` nghiêng dùng x thẳng (x đứng xiên 9.5°) thay cho x uốn lượn của Lilex.
 
 **Build**
 
