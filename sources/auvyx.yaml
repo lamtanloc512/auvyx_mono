@@ -22,10 +22,9 @@ default_features:
 italic_from_upright:
   - x      # bỏ chữ x uốn lượn, dùng x thẳng
 
-# Bỏ chân serif ở baseline
+# Bỏ chân serif ở baseline (chạy sau import_glyphs). f đứng đã lấy bản không chân của Recursive.
 remove_foot:
-  upright:
-    - f
+  upright: []
 
 # Ghép glyph từ font OFL khác. Outline được khớp độ đậm (theo độ dày thân chữ)
 # và khớp chiều cao (x-height, ascender, descender) với Lilex.
@@ -40,5 +39,27 @@ import_glyphs:
       target: [-200, 0, 522, 740]
     chars: "kljrvwt łŧţȷ"
 
+  - name: Recursive-upright
+    source: sources/external/recursive/Recursive_VF_1.085.ttf
+    styles: [upright]
+    location: {MONO: 1, CASL: 0, slnt: 0, CRSV: 0}
+    masters: {100: 227, 400: 373, 700: 787}
+    zones:
+      source: [-200, 0, 532, 750]
+      target: [-200, 0, 516, 740]
+    chars: "afjtsw ąşţŧȷ"
+    source_names: {f: f}      # f.mono của Rec có chân; glyph "f" (ở MONO=1) không chân, cùng độ rộng 600
+
+  - name: Geist
+    source: sources/external/geist/GeistMono-VF-1.7.2.ttf    # OFL, xem OFL.txt cùng thư mục
+    styles: [upright]
+    location: {}
+    masters: {100: 50, 400: 385, 700: 769}                    # khớp theo nét chữ o
+    zones:
+      source: [-150, 0, 530, 710]
+      target: [-150, 0, 516, 696]
+    chars: "oơø"
+
 extra_copyright:
-  - "Glyphs k l j r v w t (italic) from Recursive: Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Glyphs from Recursive (upright a f j t s w, italic k l j r v w t): Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Glyph o from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."

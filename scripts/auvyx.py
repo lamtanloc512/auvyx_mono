@@ -324,6 +324,7 @@ def _import_masters(spec: dict, root: Path) -> dict:
 
     base = _instance(src, {**loc, "wght": max(wmin, 400)})
     ch_names = _source_glyph_names(src, base, chars)
+    ch_names.update(spec.get("source_names", {}) or {})  # ép dùng glyph khác trong font nguồn
     result: dict = {ch: {} for ch in chars}
     for lw, sw in spec["masters"].items():
         for ch, (coords, ends, flags) in at(sw, ch_names).items():
@@ -460,11 +461,6 @@ def transform(font: ttLib.TTFont, item: Path, cfg: dict) -> tuple[set, list]:
     for t in feats.get("italic" if italic else "upright", []) or []:
         notes.append(f"{t}:{make_default(font, t)}")
     unfoot = cfg.get("remove_foot", {}) or {}
-    if not italic:
-        for g in unfoot.get("upright", []) or []:
-            remove_foot(font, g)
-            changed.add(g)
-            notes.append(f"{g}:no-foot")
     if italic and cfg.get("italic_from_upright"):
         partner = upright_partner(item)
         if partner is None:
@@ -483,6 +479,12 @@ def transform(font: ttLib.TTFont, item: Path, cfg: dict) -> tuple[set, list]:
             names = import_glyphs(font, spec, root)
             changed.update(names)
             notes.append(f"{spec['name']}:{len(names)}")
+    # bỏ chân serif sau cùng (áp cả cho glyph vừa ghép từ font khác)
+    if not italic:
+        for g in unfoot.get("upright", []) or []:
+            remove_foot(font, g)
+            changed.add(g)
+            notes.append(f"{g}:no-foot")
     return changed, notes
 
 
