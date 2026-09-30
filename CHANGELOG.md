@@ -16,7 +16,7 @@ First release of Auvyx Mono, a fork of Lilex 2.700.
 
 ### Added
 
-- **Auvyx Mono Linear**: sister family with upright Latin letters and figures from Geist Mono (`l` from Recursive); italic shared with Auvyx Mono.
+- **Auvyx Mono Linear**: sister family with upright Latin letters and figures from Geist Mono, except `a f j l t s w r y A F J T S W R` from Recursive (same as Auvyx Mono); italic shared with Auvyx Mono.
 - Website (`website/`) and intro video (`website/video/`).
 
 ---

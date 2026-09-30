@@ -29,7 +29,7 @@ support. Available as static TTF/OTF, variable TTF and WOFF2.
 ### Auvyx Mono Linear
 
 A sister family whose upright uses the Latin letters and figures of [Geist Mono](https://github.com/vercel/geist-font)
-(weight-matched; `l` from Recursive), while the italic is identical to Auvyx Mono's. Symbols, ligatures and box drawing are shared.
+(weight-matched), with the same Recursive letters as Auvyx Mono (`a f j l t s w r y A F J T S W R`), while the italic is identical to Auvyx Mono's. Symbols, ligatures and box drawing are shared.
 Built with `make auvyx-linear` → `fonts/AuvyxMonoLinear` (config: [`sources/auvyx_linear.yaml`](sources/auvyx_linear.yaml)).
 
 <p align="center"><img src="./images/linear.png" alt="Auvyx Mono vs Auvyx Mono Linear" width="100%"></p>

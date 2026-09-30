@@ -1,5 +1,6 @@
 # Auvyx Mono Linear — biến thể "linear":
-#   bộ ĐỨNG: toàn bộ chữ cái và chữ số lấy từ Geist Mono (OFL)
+#   bộ ĐỨNG: chữ cái và chữ số lấy từ Geist Mono (OFL), riêng a f j l t s w r y A F J T S W R
+#            lấy từ Rec Mono Linear như Auvyx Mono
 #   bộ NGHIÊNG: giống hệt Auvyx Mono (chữ nghiêng Recursive, f thường không chân, x thẳng)
 # Ký hiệu, dấu câu, ligature, box drawing, Hy Lạp, Cyrillic giữ của Auvyx/Lilex.
 # Chạy: make auvyx-linear  → fonts/AuvyxMonoLinear
@@ -39,10 +40,11 @@ import_glyphs:
     zones:
       source: [-150, 0, 530, 710, 1000]          # descender, baseline, x-height, cap/ascender
       target: [-150, 0, 516, 698, 988]
-    chars: "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyzªµºÆÇØÞßæçðøþĄąďĐđĘęĝğĦħĮįıŁŊŋŒœŞşŢţŦŧŲųƏƒƠơƯưȷẞ"   # trừ l, ł (lấy từ Recursive)
+    chars: "0123456789BCDEGHIKLMNOPQUVXYZbcdeghikmnopquvxzªµºÆÇØÞßæçðøþďĐđĘęĝğĦħĮįıŊŋŒœŲųƏƒƠơƯưẞ"   # trừ các chữ lấy từ Recursive (giống Auvyx Mono)
 
-  # l đứng lấy từ Rec Mono Linear; chiều cao phần trên khớp với các chữ Geist (698)
-  - name: Recursive-upright-l
+  # Giống Auvyx Mono: a f j l t s w r y + A F J T S W R lấy từ Rec Mono Linear,
+  # chiều cao khớp với các chữ Geist (x-height 516, ascender/cap 698)
+  - name: Recursive-upright
     source: sources/external/recursive/Recursive_VF_1.085.ttf
     styles: [upright]
     location: {MONO: 1, CASL: 0, slnt: 0, CRSV: 0}
@@ -52,7 +54,20 @@ import_glyphs:
       target: [-150, 0, 516, 698]
     match_stroke: stem
     reference: fonts/Lilex/variable/Lilex[wght].ttf
-    chars: "lł"
+    chars: "afjltswry ąşţŧȷłỵ"
+    source_names: {f: f}      # f không chân
+
+  - name: Recursive-upright-caps
+    source: sources/external/recursive/Recursive_VF_1.085.ttf
+    styles: [upright]
+    location: {MONO: 1, CASL: 0, slnt: 0, CRSV: 0}
+    masters: {100: 227, 400: 373, 700: 787}
+    zones:
+      source: [-200, 0, 700, 1000]
+      target: [-150, 0, 698, 988]
+    match_stroke: stem
+    reference: fonts/Lilex/variable/Lilex[wght].ttf
+    chars: "AFJTSWR ĄŞŢŦ"
 
   # --- bộ nghiêng: giống Auvyx Mono ---
   - name: Recursive
@@ -81,5 +96,5 @@ import_glyphs:
     chars: "KLJRVWTF ŁŦŢ"
 
 extra_copyright:
-  - "Upright l and italic k l j r v w t f y K L J R V W T F from Recursive: Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
+  - "Upright a f j l t s w r y A F J T S W R and italic k l j r v w t f y K L J R V W T F from Recursive: Copyright 2020 The Recursive Project Authors (https://github.com/arrowtype/recursive)."
   - "Upright letters and figures from Geist Mono: Copyright 2024 The Geist Project Authors (https://github.com/vercel/geist-font)."
